@@ -3,6 +3,7 @@ RUN apt update && apt install -y python3.10 python3-pip libglib2.0-0 libgl1-mesa
 WORKDIR /app
 EXPOSE 8000
 COPY ./models /app/models
+COPY ./images /app/images
 COPY ./main.py /app/main.py
 COPY ./requirements.txt /app/requirements.txt
 RUN pip3 install -r requirements.txt

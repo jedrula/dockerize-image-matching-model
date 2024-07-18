@@ -81,3 +81,39 @@ async def get_matching(image1: UploadFile = File(...), image2: UploadFile = File
     ax.axis('off')
     plt.savefig('output.jpg', bbox_inches='tight')
     return FileResponse("./output.jpg", media_type="image/jpeg")
+
+async def getSimilarityScore(tensorImage1, tensorImage2):
+    input_dict = {"image0": K.color.rgb_to_grayscale(tensorImage1),
+                  "image1": K.color.rgb_to_grayscale(tensorImage2)}
+    
+    with torch.no_grad():
+        correspondences = matcher(input_dict)
+
+        mkpts0 = correspondences['keypoints0'].cpu().numpy()
+        mkpts1 = correspondences['keypoints1'].cpu().numpy()
+        Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+        inliers = inliers > 0
+
+        return inliers.sum()
+
+# possible files we match against are in ./images/stokowka folder. File names are pologa.jpg, przewiecha.jpg, zachodnia.jpg
+@app.post("/find_match")
+async def find_match(image1: UploadFile = File(...)):
+    img1 = get_tensor_image(await image1.read())
+    compare_images = ["pologa.jpg", "przewiecha.jpg", "zachodnia.png"]
+
+    scores = []
+
+    for img in compare_images:
+        img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
+        score = await getSimilarityScore(img1, img2)
+        scores.append(int(score))  # Convert NumPy int64 to native Python int
+
+    best_match_index = scores.index(max(scores))
+    best_match = compare_images[best_match_index]
+    best_score = scores[best_match_index]  # Already converted to Python int
+
+    return {"best_match": best_match, "score": best_score}
+
+        
+    
