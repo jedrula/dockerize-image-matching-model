@@ -13,6 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #initializing api insance
 app = FastAPI()
+print("API is ready to use")
 
 #Load model
 matcher = KF.LoFTR(pretrained=None)
