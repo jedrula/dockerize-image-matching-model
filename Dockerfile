@@ -5,6 +5,7 @@ EXPOSE 8000
 COPY ./models /app/models
 COPY ./images /app/images
 COPY ./main.py /app/main.py
+COPY ./ui /app/ui
 COPY ./requirements.txt /app/requirements.txt
 RUN pip3 install -r requirements.txt
 # RUN pip3 install torch==1.13.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
