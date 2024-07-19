@@ -1,3 +1,4 @@
+from enum import Enum
 import cv2
 import numpy as np
 import torch
@@ -95,17 +96,33 @@ async def getSimilarityScore(tensorImage1, tensorImage2):
         inliers = inliers > 0
 
         return inliers.sum()
+    
+def findFolderImages(folder_path):
+    import os
+    images = []
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            images.append(os.path.join(folder_path, filename))
+    return images
+
+class RegionName(str, Enum):
+    stokowka = "stokowka"
+    szczytna_widokowa = "szczytna_widokowa"
+
+def regionNameToPath(region_name):
+    return region_name.replace("_", "/")
 
 # possible files we match against are in ./images/stokowka folder. File names are pologa.jpg, przewiecha.jpg, zachodnia.jpg
 @app.post("/find_match")
-async def find_match(image1: UploadFile = File(...)):
+async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
     img1 = get_tensor_image(await image1.read())
-    compare_images = ["pologa.jpg", "przewiecha.jpg", "zachodnia.png"]
+    compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
 
     scores = []
 
     for img in compare_images:
-        img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
+        # img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
+        img2 = get_tensor_image(open(img, "rb").read())
         score = await getSimilarityScore(img1, img2)
         scores.append(int(score))  # Convert NumPy int64 to native Python int
 
@@ -113,7 +130,9 @@ async def find_match(image1: UploadFile = File(...)):
     best_match = compare_images[best_match_index]
     best_score = scores[best_match_index]  # Already converted to Python int
 
-    return {"best_match": best_match, "score": best_score}
+    all_scores = dict(zip(compare_images, scores))
+
+    return {"best_match": best_match, "score": best_score, "all_scores": all_scores}
 
         
     
