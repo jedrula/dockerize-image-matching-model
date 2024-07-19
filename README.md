@@ -21,3 +21,9 @@ PS: Use ```--gpus all``` if host machine contains GPU
 
 https://github.com/Deshram/dockerize-image-matching-model/assets/43752639/42cd6637-4b6d-402d-b417-2d1a31e81879
 
+
+
+----- My additional notes ---
+{
+  "deploy": "ngrok http 8000"
+}

@@ -134,5 +134,8 @@ async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
 
     return {"best_match": best_match, "score": best_score, "all_scores": all_scores}
 
-        
+
+@app.get("/ui")
+async def get_ui():
+    return FileResponse("./ui/index.html", media_type="text/html")
     
