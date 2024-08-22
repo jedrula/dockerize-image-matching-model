@@ -27,3 +27,8 @@ https://github.com/Deshram/dockerize-image-matching-model/assets/43752639/42cd66
 {
   "deploy": "ngrok http 8000"
 }
+
+1. docker build -t image_mathcing .
+2. go to docker desktop app and run container from image. Make sure to set 8000 in port mapping
+3. go to localhost:8000/ui
+4. choose image and take one from `test user images`. The region we compare against is hardcoded. Currently set to szczytna so you can pick szczytnik_gdzies2. It's a long wait, be patient.
