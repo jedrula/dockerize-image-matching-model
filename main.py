@@ -52,7 +52,7 @@ async def process_matching(img1, img2):
     "image1": K.color.rgb_to_grayscale(img2)}
 
   with torch.no_grad():
-  correspondences = matcher(input_dict)
+    correspondences = matcher(input_dict)
 
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
@@ -64,9 +64,9 @@ async def process_matching(img1, img2):
 
   # Select a random subset of matches if there are more than the specified number of matches
   if mkpts0.shape[0] > NUM_MATCHES_TO_DISPLAY:
-  selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
+    selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
   else:
-  selected_indices = torch.arange(mkpts0.shape[0])
+    selected_indices = torch.arange(mkpts0.shape[0])
 
   # Use the selected indices to filter matches
   filtered_mkpts0 = mkpts0[selected_indices]
@@ -110,12 +110,11 @@ async def getSimilarityScore(tensorImage1, tensorImage2):
       "image1": K.color.rgb_to_grayscale(tensorImage2)}
   
   with torch.no_grad():
-  correspondences = matcher(input_dict)
-
-  mkpts0 = correspondences['keypoints0'].cpu().numpy()
-  mkpts1 = correspondences['keypoints1'].cpu().numpy()
-  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
-  inliers = inliers > 0
+    correspondences = matcher(input_dict)
+    mkpts0 = correspondences['keypoints0'].cpu().numpy()
+    mkpts1 = correspondences['keypoints1'].cpu().numpy()
+    Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+    inliers = inliers > 0
 
   return inliers.sum()
   
@@ -123,8 +122,8 @@ def findFolderImages(folder_path):
   import os
   images = []
   for filename in os.listdir(folder_path):
-  if filename.endswith(".jpg") or filename.endswith(".png"):
-    images.append(os.path.join(folder_path, filename))
+    if filename.endswith(".jpg") or filename.endswith(".png"):
+      images.append(os.path.join(folder_path, filename))
   return images
 
 class RegionName(str, Enum):
@@ -143,10 +142,9 @@ async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
   scores = []
 
   for img in compare_images:
-  # img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
-  img2 = get_tensor_image(open(img, "rb").read())
-  score = await getSimilarityScore(img1, img2)
-  scores.append(int(score))  # Convert NumPy int64 to native Python int
+    img2 = get_tensor_image(open(img, "rb").read())
+    score = await getSimilarityScore(img1, img2)
+    scores.append(int(score))  # Convert NumPy int64 to native Python int
 
   best_match_index = scores.index(max(scores))
   best_match = compare_images[best_match_index]
