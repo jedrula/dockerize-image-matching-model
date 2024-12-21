@@ -97,6 +97,16 @@
 
         xhr.upload.onprogress = onProgress;
 
+        xhr.onload = function () {
+          const result = document.getElementById("best-match-preview");
+          console.log("xhr.responseText", xhr.responseText);
+          if (xhr.status === 200) {
+            result.innerHTML = `<img src="data:image/jpeg;base64,${xhr.responseText}" />`;
+          } else {
+            result.innerHTML = "An error occurred!";
+          }
+        };
+
         xhr.send(formData);
       }
 
@@ -121,6 +131,7 @@
             result.innerHTML = `
             <h2>Best Match <small>(score ${response.score})</small></h2>
             <p>${response.best_match}</p>
+            <div id="best-match-preview"></div>
             <h2>All Scores</h2>
             <ul>
                 ${Object.keys(response.all_scores)
