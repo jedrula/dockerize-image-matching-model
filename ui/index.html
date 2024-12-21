@@ -97,12 +97,13 @@
 
         xhr.upload.onprogress = onProgress;
 
+        xhr.responseType = "blob";
         xhr.onload = function () {
           const result = document.getElementById("best-match-preview");
           if (xhr.status === 200) {
-            console.log("xhr.responseText", xhr.responseText);
             const img = document.createElement("img");
-            img.src = xhr.responseText;
+            const url = URL.createObjectURL(xhr.response);
+            img.src = url;
             result.appendChild(img);
           } else {
             result.innerHTML = "An error occurred!";
