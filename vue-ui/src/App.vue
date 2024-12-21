@@ -4,6 +4,8 @@ import { ref } from "vue";
 const progressBarWidth = ref(0);
 const result = ref("");
 
+const BASE_URL = "https://b965-23-16-73-230.ngrok-free.app";
+
 function onProgress(e: ProgressEvent) {
   if (e.lengthComputable) {
     const percentComplete = (e.loaded / e.total) * 100;
@@ -18,7 +20,7 @@ function requestBestMatchPreview(file: File, bestMatch: string) {
   const xhr = new XMLHttpRequest();
   xhr.open(
     "POST",
-    `/get_matching_with?image_path=${encodeURIComponent(bestMatch)}`,
+    `${BASE_URL}/get_matching_with?image_path=${encodeURIComponent(bestMatch)}`,
     true
   );
 
@@ -48,7 +50,11 @@ function uploadFile(event: Event) {
   formData.append("image1", file);
 
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/find_match?folder_path=szczytna_widokowa", true);
+  xhr.open(
+    "POST",
+    `${BASE_URL}/find_match?folder_path=szczytna_widokowa`,
+    true
+  );
 
   xhr.upload.onprogress = onProgress;
 

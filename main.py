@@ -8,6 +8,7 @@ import kornia.feature as KF
 from kornia_moons.viz import draw_LAF_matches
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 # Constants
 NUM_MATCHES_TO_DISPLAY = 50
@@ -20,6 +21,15 @@ print(f"Using device: {device}")
 app = FastAPI()
 print("API is ready to use")
 
+# Add CORS middleware
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["http://localhost:5173"],  # Allow this origin
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
+)
+
 #Load model
 matcher = KF.LoFTR(pretrained=None)
 matcher.load_state_dict(torch.load("./models/loftr_outdoor.ckpt")['state_dict'])
@@ -27,22 +37,22 @@ matcher = matcher.to(device).eval()
 
 #bytes-image to tensor
 def get_tensor_image(img_bytes):
-    img = np.asarray(bytearray(img_bytes), dtype="uint8")
-    img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-    scale = 840 / max(img.shape[0], img.shape[1]) 
-    w = int(img.shape[1] * scale)
-    h = int(img.shape[0] * scale)
-    img = cv2.resize(img, (w, h))
-    img = K.image_to_tensor(img, False).float() /255.
-    img = K.color.bgr_to_rgb(img)
-    return img.to(device)
+  img = np.asarray(bytearray(img_bytes), dtype="uint8")
+  img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+  scale = 840 / max(img.shape[0], img.shape[1]) 
+  w = int(img.shape[1] * scale)
+  h = int(img.shape[0] * scale)
+  img = cv2.resize(img, (w, h))
+  img = K.image_to_tensor(img, False).float() /255.
+  img = K.color.bgr_to_rgb(img)
+  return img.to(device)
 
 async def process_matching(img1, img2):
   input_dict = {"image0": K.color.rgb_to_grayscale(img1),
-      "image1": K.color.rgb_to_grayscale(img2)}
+    "image1": K.color.rgb_to_grayscale(img2)}
 
   with torch.no_grad():
-    correspondences = matcher(input_dict)
+  correspondences = matcher(input_dict)
 
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
@@ -54,9 +64,9 @@ async def process_matching(img1, img2):
 
   # Select a random subset of matches if there are more than the specified number of matches
   if mkpts0.shape[0] > NUM_MATCHES_TO_DISPLAY:
-    selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
+  selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
   else:
-    selected_indices = torch.arange(mkpts0.shape[0])
+  selected_indices = torch.arange(mkpts0.shape[0])
 
   # Use the selected indices to filter matches
   filtered_mkpts0 = mkpts0[selected_indices]
@@ -66,18 +76,18 @@ async def process_matching(img1, img2):
   # Now, use the filtered matches in draw_LAF_matches
   fig, ax = draw_LAF_matches(
   KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts0).view(1, -1, 2),
-          torch.ones(num_matches).view(1, -1, 1, 1),
-          torch.ones(num_matches).view(1, -1, 1)),
+      torch.ones(num_matches).view(1, -1, 1, 1),
+      torch.ones(num_matches).view(1, -1, 1)),
   KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts1).view(1, -1, 2),
-          torch.ones(num_matches).view(1, -1, 1, 1),
-          torch.ones(num_matches).view(1, -1, 1)),
+      torch.ones(num_matches).view(1, -1, 1, 1),
+      torch.ones(num_matches).view(1, -1, 1)),
   torch.arange(num_matches).view(-1,1).repeat(1,2),  # Adjusted indices for drawing
   K.tensor_to_image(img1),
   K.tensor_to_image(img2),
   filtered_inliers,  # Use the filtered inliers
   draw_dict={'inlier_color': (0.2, 1, 0.2),
-      'tentative_color': None,
-      'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
+    'tentative_color': None,
+    'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
 
   ax.axis('off')
   plt.savefig('output.jpg', bbox_inches='tight')
@@ -97,24 +107,24 @@ async def get_matching(image1: UploadFile = File(...), image2: UploadFile = File
 
 async def getSimilarityScore(tensorImage1, tensorImage2):
   input_dict = {"image0": K.color.rgb_to_grayscale(tensorImage1),
-          "image1": K.color.rgb_to_grayscale(tensorImage2)}
+      "image1": K.color.rgb_to_grayscale(tensorImage2)}
   
   with torch.no_grad():
-    correspondences = matcher(input_dict)
+  correspondences = matcher(input_dict)
 
-    mkpts0 = correspondences['keypoints0'].cpu().numpy()
-    mkpts1 = correspondences['keypoints1'].cpu().numpy()
-    Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
-    inliers = inliers > 0
+  mkpts0 = correspondences['keypoints0'].cpu().numpy()
+  mkpts1 = correspondences['keypoints1'].cpu().numpy()
+  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+  inliers = inliers > 0
 
-    return inliers.sum()
+  return inliers.sum()
   
 def findFolderImages(folder_path):
   import os
   images = []
   for filename in os.listdir(folder_path):
-    if filename.endswith(".jpg") or filename.endswith(".png"):
-      images.append(os.path.join(folder_path, filename))
+  if filename.endswith(".jpg") or filename.endswith(".png"):
+    images.append(os.path.join(folder_path, filename))
   return images
 
 class RegionName(str, Enum):
@@ -133,10 +143,10 @@ async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
   scores = []
 
   for img in compare_images:
-    # img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
-    img2 = get_tensor_image(open(img, "rb").read())
-    score = await getSimilarityScore(img1, img2)
-    scores.append(int(score))  # Convert NumPy int64 to native Python int
+  # img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
+  img2 = get_tensor_image(open(img, "rb").read())
+  score = await getSimilarityScore(img1, img2)
+  scores.append(int(score))  # Convert NumPy int64 to native Python int
 
   best_match_index = scores.index(max(scores))
   best_match = compare_images[best_match_index]
