@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import axios, { AxiosProgressEvent } from "axios";
 
 const progressBarWidth = ref(0);
 const result = ref("");
@@ -8,42 +9,39 @@ const file = ref<File | null>(null);
 
 const BASE_URL = "https://b965-23-16-73-230.ngrok-free.app";
 
-function onProgress(e: ProgressEvent) {
-  if (e.lengthComputable) {
-    const percentComplete = (e.loaded / e.total) * 100;
-    progressBarWidth.value = percentComplete;
-  }
-}
+const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+  progressBarWidth.value = Math.round(
+    progressEvent.total ? (progressEvent.loaded * 100) / progressEvent.total : 0
+  );
+};
 
-function requestBestMatchPreview(file: File, bestMatch: string) {
+async function requestBestMatchPreview(file: File, bestMatch: string) {
   const formData = new FormData();
   formData.append("image1", file);
 
-  const xhr = new XMLHttpRequest();
-  xhr.open(
-    "POST",
-    `${BASE_URL}/get_matching_with?image_path=${encodeURIComponent(bestMatch)}`,
-    true
-  );
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/get_matching_with?image_path=${encodeURIComponent(
+        bestMatch
+      )}`,
+      formData,
+      {
+        responseType: "blob",
+        onUploadProgress,
+      }
+    );
 
-  xhr.upload.onprogress = onProgress;
-
-  xhr.responseType = "blob";
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      const img = document.createElement("img");
-      const url = URL.createObjectURL(xhr.response);
-      img.src = url;
-      document.getElementById("best-match-preview")?.appendChild(img);
-    } else {
-      result.value = "An error occurred!";
-    }
-  };
-
-  xhr.send(formData);
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(response.data);
+    img.src = url;
+    document.getElementById("best-match-preview")?.appendChild(img);
+  } catch (error) {
+    console.error(error);
+    result.value = "An error occurred!";
+  }
 }
 
-function uploadFile() {
+async function uploadFile() {
   if (!file.value || !selectedFolder.value) {
     result.value = "Please select a file and a folder.";
     return;
@@ -52,36 +50,31 @@ function uploadFile() {
   const formData = new FormData();
   formData.append("image1", file.value);
 
-  const xhr = new XMLHttpRequest();
-  xhr.open(
-    "POST",
-    `${BASE_URL}/find_match?folder_path=${selectedFolder.value}`,
-    true
-  );
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/find_match?folder_path=${selectedFolder.value}`,
+      formData,
+      {
+        onUploadProgress,
+      }
+    );
 
-  xhr.upload.onprogress = onProgress;
-
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      const response = JSON.parse(xhr.responseText);
-      requestBestMatchPreview(file.value, response.best_match);
-      result.value = `
-        <h2>Best Match <small>(score ${response.score})</small></h2>
-        <p>${response.best_match}</p>
-        <div id="best-match-preview"></div>
-        <h2>All Scores</h2>
-        <ul>
-          ${Object.keys(response.all_scores)
-            .map((key) => `<li>${key}: ${response.all_scores[key]}</li>`)
-            .join("")}
-        </ul>
-      `;
-    } else {
-      result.value = "An error occurred!";
-    }
-  };
-
-  xhr.send(formData);
+    const data = response.data;
+    result.value = `
+      <h2>Best Match <small>(score ${data.score})</small></h2>
+      <p>${data.best_match}</p>
+      <div id="best-match-preview"></div>
+      <h2>All Scores</h2>
+      <ul>
+        ${Object.keys(data.all_scores)
+          .map((key) => `<li>${key}: ${data.all_scores[key]}</li>`)
+          .join("")}
+      </ul>
+    `;
+    requestBestMatchPreview(file.value, data.best_match);
+  } catch (error) {
+    result.value = "An error occurred!";
+  }
 }
 
 function handleFileChange(event: Event) {
