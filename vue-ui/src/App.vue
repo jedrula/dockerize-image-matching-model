@@ -1,0 +1,171 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+const progressBarWidth = ref(0);
+const result = ref("");
+
+function onProgress(e: ProgressEvent) {
+  if (e.lengthComputable) {
+    const percentComplete = (e.loaded / e.total) * 100;
+    progressBarWidth.value = percentComplete;
+  }
+}
+
+function requestBestMatchPreview(file: File, bestMatch: string) {
+  const formData = new FormData();
+  formData.append("image1", file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open(
+    "POST",
+    `/get_matching_with?image_path=${encodeURIComponent(bestMatch)}`,
+    true
+  );
+
+  xhr.upload.onprogress = onProgress;
+
+  xhr.responseType = "blob";
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const img = document.createElement("img");
+      const url = URL.createObjectURL(xhr.response);
+      img.src = url;
+      document.getElementById("best-match-preview")?.appendChild(img);
+    } else {
+      result.value = "An error occurred!";
+    }
+  };
+
+  xhr.send(formData);
+}
+
+function uploadFile(event: Event) {
+  const fileInput = event.target as HTMLInputElement;
+  const file = fileInput.files?.[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("image1", file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/find_match?folder_path=szczytna_widokowa", true);
+
+  xhr.upload.onprogress = onProgress;
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const response = JSON.parse(xhr.responseText);
+      requestBestMatchPreview(file, response.best_match);
+      result.value = `
+        <h2>Best Match <small>(score ${response.score})</small></h2>
+        <p>${response.best_match}</p>
+        <div id="best-match-preview"></div>
+        <h2>All Scores</h2>
+        <ul>
+          ${Object.keys(response.all_scores)
+            .map((key) => `<li>${key}: ${response.all_scores[key]}</li>`)
+            .join("")}
+        </ul>
+      `;
+    } else {
+      result.value = "An error occurred!";
+    }
+  };
+
+  xhr.send(formData);
+}
+</script>
+
+<template>
+  <div class="container">
+    <div class="progress">
+      <div
+        id="progress-bar"
+        class="progress-bar"
+        :style="{ width: progressBarWidth + '%' }"
+      ></div>
+    </div>
+
+    <div class="file-input">
+      <input type="file" id="file-input" @change="uploadFile" />
+      <label for="file-input">Choose Image</label>
+    </div>
+
+    <div id="result" class="result" v-html="result"></div>
+  </div>
+</template>
+
+<style scoped>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+.container {
+  width: 80%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.progress {
+  width: 100%;
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.progress-bar {
+  width: 0;
+  height: 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-align: center;
+  line-height: 20px;
+}
+
+.file-input {
+  margin: 20px 0;
+}
+
+.file-input input[type="file"] {
+  display: none;
+}
+
+.file-input label {
+  display: block;
+  width: 100%;
+  background-color: #007bff;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-input label:hover {
+  background-color: #0056b3;
+}
+
+.result {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 5px;
+}
+
+.result h2 {
+  margin: 0;
+  padding: 0;
+}
+
+.result p {
+  margin: 10px 0;
+}
+
+img {
+  max-width: 100%;
+}
+</style>
