@@ -3,6 +3,8 @@ import { ref } from "vue";
 
 const progressBarWidth = ref(0);
 const result = ref("");
+const selectedFolder = ref("");
+const file = ref<File | null>(null);
 
 const BASE_URL = "https://b965-23-16-73-230.ngrok-free.app";
 
@@ -41,18 +43,19 @@ function requestBestMatchPreview(file: File, bestMatch: string) {
   xhr.send(formData);
 }
 
-function uploadFile(event: Event) {
-  const fileInput = event.target as HTMLInputElement;
-  const file = fileInput.files?.[0];
-  if (!file) return;
+function uploadFile() {
+  if (!file.value || !selectedFolder.value) {
+    result.value = "Please select a file and a folder.";
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("image1", file);
+  formData.append("image1", file.value);
 
   const xhr = new XMLHttpRequest();
   xhr.open(
     "POST",
-    `${BASE_URL}/find_match?folder_path=szczytna_widokowa`,
+    `${BASE_URL}/find_match?folder_path=${selectedFolder.value}`,
     true
   );
 
@@ -61,7 +64,7 @@ function uploadFile(event: Event) {
   xhr.onload = function () {
     if (xhr.status === 200) {
       const response = JSON.parse(xhr.responseText);
-      requestBestMatchPreview(file, response.best_match);
+      requestBestMatchPreview(file.value, response.best_match);
       result.value = `
         <h2>Best Match <small>(score ${response.score})</small></h2>
         <p>${response.best_match}</p>
@@ -80,6 +83,11 @@ function uploadFile(event: Event) {
 
   xhr.send(formData);
 }
+
+function handleFileChange(event: Event) {
+  const fileInput = event.target as HTMLInputElement;
+  file.value = fileInput.files?.[0] || null;
+}
 </script>
 
 <template>
@@ -93,9 +101,19 @@ function uploadFile(event: Event) {
     </div>
 
     <div class="file-input">
-      <input type="file" id="file-input" @change="uploadFile" />
+      <input type="file" id="file-input" @change="handleFileChange" />
       <label for="file-input">Choose Image</label>
     </div>
+
+    <div class="folder-select">
+      <select v-model="selectedFolder">
+        <option disabled value="">Select Folder</option>
+        <option value="szczytna_widokowa">szczytna_widokowa</option>
+        <option value="stokowka">stokowka</option>
+      </select>
+    </div>
+
+    <button @click="uploadFile">Submit</button>
 
     <div id="result" class="result" v-html="result"></div>
   </div>
@@ -150,6 +168,29 @@ body {
 }
 
 .file-input label:hover {
+  background-color: #0056b3;
+}
+
+.folder-select {
+  margin: 20px 0;
+}
+
+.folder-select select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
   background-color: #0056b3;
 }
 
