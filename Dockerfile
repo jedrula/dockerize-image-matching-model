@@ -1,5 +1,5 @@
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
-RUN apt update && apt install -y python3.10 python3-pip libglib2.0-0 libgl1-mesa-glx vim && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y python3.11 python3-pip libglib2.0-0 libgl1-mesa-glx vim && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8000
 COPY ./models /app/models
