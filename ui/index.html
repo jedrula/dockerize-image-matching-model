@@ -100,10 +100,8 @@
         xhr.onload = function () {
           const result = document.getElementById("best-match-preview");
           if (xhr.status === 200) {
-            const blob = new Blob([xhr.response], { type: "image/jpeg" });
-            const imageUrl = window.URL.createObjectURL(blob);
             const img = document.createElement("img");
-            img.src = imageUrl;
+            img.src = xhr.response;
             result.appendChild(img);
           } else {
             result.innerHTML = "An error occurred!";
