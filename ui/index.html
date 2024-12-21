@@ -101,7 +101,7 @@
           const result = document.getElementById("best-match-preview");
           if (xhr.status === 200) {
             const img = document.createElement("img");
-            img.src = xhr.response;
+            img.src = xhr.responseText;
             result.appendChild(img);
           } else {
             result.innerHTML = "An error occurred!";
