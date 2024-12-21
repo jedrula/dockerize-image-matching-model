@@ -89,7 +89,9 @@
             formData.append('image1', file);
 
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'http://localhost:8000/find_match?folder_path=szczytna_widokowa', true);
+            // xhr.open('POST', 'http://localhost:8000/find_match?folder_path=szczytna_widokowa', true);
+            // make xhr relative to the host:port from the url
+            xhr.open('POST', '/find_match?folder_path=szczytna_widokowa', true);
 
             xhr.upload.onprogress = function(e) {
                 if (e.lengthComputable) {
