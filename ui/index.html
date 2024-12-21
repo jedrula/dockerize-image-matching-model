@@ -112,9 +112,8 @@
 
         xhr.onload = function () {
           if (xhr.status === 200) {
-            requestBestMatchPreview({ file, best_match: response.best_match });
-
             const response = JSON.parse(xhr.responseText);
+            requestBestMatchPreview({ file, best_match: response.best_match });
             const result = document.getElementById("result");
             result.innerHTML = `
             <h2>Best Match <small>(score ${response.score})</small></h2>
