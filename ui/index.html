@@ -94,8 +94,6 @@
           "./get_matching_with?image_path=" + encodeURIComponent(best_match),
           true
         );
-        xhr.setRequestHeader("accept", "application/json");
-        xhr.setRequestHeader("content-type", "multipart/form-data");
 
         xhr.upload.onprogress = onProgress;
 
