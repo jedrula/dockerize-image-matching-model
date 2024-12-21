@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 
 #setting up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 
 #initializing api insance
 app = FastAPI()
