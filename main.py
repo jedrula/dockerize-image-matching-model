@@ -42,7 +42,7 @@ async def process_matching(img1, img2):
       "image1": K.color.rgb_to_grayscale(img2)}
 
   with torch.no_grad():
-  correspondences = matcher(input_dict)
+    correspondences = matcher(input_dict)
 
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
@@ -54,9 +54,9 @@ async def process_matching(img1, img2):
 
   # Select a random subset of matches if there are more than the specified number of matches
   if mkpts0.shape[0] > NUM_MATCHES_TO_DISPLAY:
-  selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
+    selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
   else:
-  selected_indices = torch.arange(mkpts0.shape[0])
+    selected_indices = torch.arange(mkpts0.shape[0])
 
   # Use the selected indices to filter matches
   filtered_mkpts0 = mkpts0[selected_indices]
