@@ -92,6 +92,8 @@
         xhr.open("POST", "/get_matching_with", true);
         xhr.upload.onprogress = onProgress;
 
+        xhr.send(formData);
+
         // TODO xhr.onload
       }
 
@@ -110,14 +112,12 @@
 
         xhr.onload = function () {
           if (xhr.status === 200) {
+            requestBestMatchPreview({ file, best_match: response.best_match });
+
             const response = JSON.parse(xhr.responseText);
             const result = document.getElementById("result");
             result.innerHTML = `
-            <h2>Best Match <small>(score ${
-              response.score
-            })</small> <button onclick="requestBestMatchPreview({ file: document.getElementById('file-input').files[0], best_match: '${
-              response.best_match
-            }' })">Preview</button></h2>
+            <h2>Best Match <small>(score ${response.score})</small></h2>
             <p>${response.best_match}</p>
             <h2>All Scores</h2>
             <ul>
