@@ -3,9 +3,13 @@ import { ref } from "vue";
 import axios, { AxiosProgressEvent } from "axios";
 
 const progressBarWidth = ref(0);
-const result = ref("");
+const resultMessage = ref("");
 const selectedFolder = ref("");
 const file = ref<File | null>(null);
+const bestMatch = ref("");
+const bestMatchScore = ref(0);
+const allScores = ref<Record<string, number>>({});
+const bestMatchPreviewUrl = ref("");
 
 const BASE_URL = "https://b965-23-16-73-230.ngrok-free.app";
 
@@ -31,19 +35,16 @@ async function requestBestMatchPreview(file: File, bestMatch: string) {
       }
     );
 
-    const img = document.createElement("img");
-    const url = URL.createObjectURL(response.data);
-    img.src = url;
-    document.getElementById("best-match-preview")?.appendChild(img);
+    bestMatchPreviewUrl.value = URL.createObjectURL(response.data);
   } catch (error) {
     console.error(error);
-    result.value = "An error occurred!";
+    resultMessage.value = "An error occurred!";
   }
 }
 
 async function uploadFile() {
   if (!file.value || !selectedFolder.value) {
-    result.value = "Please select a file and a folder.";
+    resultMessage.value = "Please select a file and a folder.";
     return;
   }
 
@@ -60,20 +61,13 @@ async function uploadFile() {
     );
 
     const data = response.data;
-    result.value = `
-      <h2>Best Match <small>(score ${data.score})</small></h2>
-      <p>${data.best_match}</p>
-      <div id="best-match-preview"></div>
-      <h2>All Scores</h2>
-      <ul>
-        ${Object.keys(data.all_scores)
-          .map((key) => `<li>${key}: ${data.all_scores[key]}</li>`)
-          .join("")}
-      </ul>
-    `;
+    bestMatch.value = data.best_match;
+    bestMatchScore.value = data.score;
+    allScores.value = data.all_scores;
+    resultMessage.value = "";
     requestBestMatchPreview(file.value, data.best_match);
   } catch (error) {
-    result.value = "An error occurred!";
+    resultMessage.value = "An error occurred!";
   }
 }
 
@@ -108,7 +102,24 @@ function handleFileChange(event: Event) {
 
     <button @click="uploadFile">Submit</button>
 
-    <div id="result" class="result" v-html="result"></div>
+    <div id="result" class="result">
+      <p v-if="resultMessage">{{ resultMessage }}</p>
+      <div v-if="bestMatch">
+        <h2>
+          Best Match <small>(score {{ bestMatchScore }})</small>
+        </h2>
+        <p>{{ bestMatch }}</p>
+        <div v-if="bestMatchPreviewUrl">
+          <img :src="bestMatchPreviewUrl" alt="Best Match Preview" />
+        </div>
+        <h2>All Scores</h2>
+        <ul>
+          <li v-for="(score, key) in allScores" :key="key">
+            {{ key }}: {{ score }}
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
