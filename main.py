@@ -114,26 +114,82 @@ def regionNameToPath(region_name):
     return region_name.replace("_", "/")
 
 # possible files we match against are in ./images/stokowka folder. File names are pologa.jpg, przewiecha.jpg, zachodnia.jpg
+async def process_images_and_find_best_match(folder_path: RegionName, img1):
+  compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  scores = []
+
+  for img in compare_images:
+    img2 = get_tensor_image(open(img, "rb").read())
+    score = await getSimilarityScore(img1, img2)
+    scores.append(int(score))  # Convert NumPy int64 to native Python int
+
+  best_match_index = scores.index(max(scores))
+  best_match = compare_images[best_match_index]
+  best_score = scores[best_match_index]  # Already converted to Python int
+
+  all_scores = dict(zip(compare_images, scores))
+
+  return best_match, best_score, all_scores
+
 @app.post("/find_match")
 async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
-    img1 = get_tensor_image(await image1.read())
-    compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  img1 = get_tensor_image(await image1.read()) 
+  best_match, best_score, all_scores = await process_images_and_find_best_match(folder_path, img1)
+  return {"best_match": best_match, "score": best_score, "all_scores": all_scores}
 
-    scores = []
+@app.post("/find_match_with_file_response")
+async def find_match_with_file_response(folder_path: RegionName, image1: UploadFile = File(...)):
+  img1 = get_tensor_image(await image1.read()) 
+  best_match, best_score, all_scores = await process_images_and_find_best_match(folder_path, img1)
 
-    for img in compare_images:
-        # img2 = get_tensor_image(open(f"./images/stokowka/{img}", "rb").read())
-        img2 = get_tensor_image(open(img, "rb").read())
-        score = await getSimilarityScore(img1, img2)
-        scores.append(int(score))  # Convert NumPy int64 to native Python int
+  # Generate matching image
+  img2 = get_tensor_image(open(best_match, "rb").read()) # TODO I think  this could be returned from process_images_and_find_best_match
+  # TODO below code can be DRIED with get_matching function
+  input_dict = {"image0": K.color.rgb_to_grayscale(img1), 
+          "image1": K.color.rgb_to_grayscale(img2)}
 
-    best_match_index = scores.index(max(scores))
-    best_match = compare_images[best_match_index]
-    best_score = scores[best_match_index]  # Already converted to Python int
+  with torch.no_grad():
+    correspondences = matcher(input_dict)
 
-    all_scores = dict(zip(compare_images, scores))
+  mkpts0 = correspondences['keypoints0'].cpu().numpy()
+  mkpts1 = correspondences['keypoints1'].cpu().numpy()
+  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+  inliers = inliers > 0   
 
-    return {"best_match": best_match, "score": best_score, "all_scores": all_scores}
+  # Determine the number of matches to display
+  num_matches = min(mkpts0.shape[0], 20)
+
+  # Select a random subset of 20 matches if there are more than 20 matches
+  if mkpts0.shape[0] > 20:
+    selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
+  else:
+    selected_indices = torch.arange(mkpts0.shape[0])
+
+  # Use the selected indices to filter matches
+  filtered_mkpts0 = mkpts0[selected_indices]
+  filtered_mkpts1 = mkpts1[selected_indices]
+  filtered_inliers = inliers[selected_indices] if inliers is not None else None
+
+  # Now, use the filtered matches in draw_LAF_matches
+  fig, ax = draw_LAF_matches(
+    KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts0).view(1, -1, 2),
+                   torch.ones(num_matches).view(1, -1, 1, 1),
+                   torch.ones(num_matches).view(1, -1, 1)),
+    KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts1).view(1, -1, 2),
+                   torch.ones(num_matches).view(1, -1, 1, 1),
+                   torch.ones(num_matches).view(1, -1, 1)),
+    torch.arange(num_matches).view(-1,1).repeat(1,2),  # Adjusted indices for drawing
+    K.tensor_to_image(img1),
+    K.tensor_to_image(img2),
+    filtered_inliers,  # Use the filtered inliers
+    draw_dict={'inlier_color': (0.2, 1, 0.2),
+           'tentative_color': None,
+           'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
+
+  ax.axis('off')
+  plt.savefig('output.jpg', bbox_inches='tight')
+
+  return {"best_match": best_match, "score": best_score, "all_scores": all_scores, "file_response": FileResponse("./output.jpg", media_type="image/jpeg")}
 
 @app.get("/images/{rest_of_path:path}")
 async def get_image(rest_of_path: str):
