@@ -141,8 +141,6 @@ body {
 }
 
 .file-input label {
-  display: block;
-  width: 100%;
   background-color: #007bff;
   color: #fff;
   text-align: center;
