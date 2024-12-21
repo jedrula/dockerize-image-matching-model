@@ -99,9 +99,12 @@
 
         xhr.onload = function () {
           const result = document.getElementById("best-match-preview");
-          console.log("xhr.responseText", xhr.responseText);
           if (xhr.status === 200) {
-            result.innerHTML = `<img src="data:image/jpeg;base64,${xhr.responseText}" />`;
+            const blob = new Blob([xhr.response], { type: "image/jpeg" });
+            const imageUrl = window.URL.createObjectURL(blob);
+            const img = document.createElement("img");
+            img.src = imageUrl;
+            result.appendChild(img);
           } else {
             result.innerHTML = "An error occurred!";
           }
