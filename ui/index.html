@@ -86,15 +86,20 @@
       function requestBestMatchPreview({ file, best_match }) {
         const formData = new FormData();
         formData.append("image1", file);
-        formData.append("image_path", best_match);
+        // formData.append("image_path", best_match);
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/get_matching_with", true);
+        xhr.open(
+          "POST",
+          "./get_matching_with?image_path=" + encodeURIComponent(best_match),
+          true
+        );
+        xhr.setRequestHeader("accept", "application/json");
+        xhr.setRequestHeader("content-type", "multipart/form-data");
+
         xhr.upload.onprogress = onProgress;
 
         xhr.send(formData);
-
-        // TODO xhr.onload
       }
 
       function uploadFile() {
