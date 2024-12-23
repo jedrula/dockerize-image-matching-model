@@ -10,9 +10,6 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-# Constants
-NUM_MATCHES_TO_DISPLAY = 50
-
 #setting up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -59,35 +56,20 @@ async def process_matching(img1, img2):
   Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
   inliers = inliers > 0
 
-  # Determine the number of matches to display
-  num_matches = min(mkpts0.shape[0], NUM_MATCHES_TO_DISPLAY)
-
-  # Select a random subset of matches if there are more than the specified number of matches
-  if mkpts0.shape[0] > NUM_MATCHES_TO_DISPLAY:
-    selected_indices = torch.randperm(mkpts0.shape[0])[:num_matches]
-  else:
-    selected_indices = torch.arange(mkpts0.shape[0])
-
-  # Use the selected indices to filter matches
-  filtered_mkpts0 = mkpts0[selected_indices]
-  filtered_mkpts1 = mkpts1[selected_indices]
-  filtered_inliers = inliers[selected_indices] if inliers is not None else None
-
-  # Now, use the filtered matches in draw_LAF_matches
   fig, ax = draw_LAF_matches(
-  KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts0).view(1, -1, 2),
-      torch.ones(num_matches).view(1, -1, 1, 1),
-      torch.ones(num_matches).view(1, -1, 1)),
-  KF.laf_from_center_scale_ori(torch.from_numpy(filtered_mkpts1).view(1, -1, 2),
-      torch.ones(num_matches).view(1, -1, 1, 1),
-      torch.ones(num_matches).view(1, -1, 1)),
-  torch.arange(num_matches).view(-1,1).repeat(1,2),  # Adjusted indices for drawing
-  K.tensor_to_image(img1),
-  K.tensor_to_image(img2),
-  filtered_inliers,  # Use the filtered inliers
-  draw_dict={'inlier_color': (0.2, 1, 0.2),
-    'tentative_color': None,
-    'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
+      KF.laf_from_center_scale_ori(torch.from_numpy(mkpts0).view(1, -1, 2),
+                                   torch.ones(mkpts0.shape[0]).view(1, -1, 1, 1),
+                                   torch.ones(mkpts0.shape[0]).view(1, -1, 1)),
+      KF.laf_from_center_scale_ori(torch.from_numpy(mkpts1).view(1, -1, 2),
+                                   torch.ones(mkpts1.shape[0]).view(1, -1, 1, 1),
+                                   torch.ones(mkpts1.shape[0]).view(1, -1, 1)),
+      torch.arange(mkpts0.shape[0]).view(-1, 1).repeat(1, 2),
+      K.tensor_to_image(img1),
+      K.tensor_to_image(img2),
+      inliers,
+      draw_dict={'inlier_color': (1, 0, 0),  # Red color
+                 'tentative_color': None,
+                 'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
 
   ax.axis('off')
   plt.savefig('output.jpg', bbox_inches='tight')
