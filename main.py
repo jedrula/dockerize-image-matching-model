@@ -54,7 +54,10 @@ async def process_matching(img1, img2):
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
   Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
-  inliers = inliers > 0
+  inliers = (inliers > 0).flatten()
+
+  # Generate a colormap for the lines
+  colormap = plt.cm.get_cmap('hsv', len(inliers))
 
   fig, ax = draw_LAF_matches(
       KF.laf_from_center_scale_ori(torch.from_numpy(mkpts0).view(1, -1, 2),
@@ -67,9 +70,14 @@ async def process_matching(img1, img2):
       K.tensor_to_image(img1),
       K.tensor_to_image(img2),
       inliers,
-      draw_dict={'inlier_color': (1, 0, 0),  # Red color
+      draw_dict={'inlier_color': None,  # Disable default inlier color
                  'tentative_color': None,
                  'feature_color': (0.2, 0.5, 1), 'vertical': False}, return_fig_ax=True)
+
+  # Draw lines with varying colors
+  for i, (pt0, pt1) in enumerate(zip(mkpts0[inliers], mkpts1[inliers])):
+      color = colormap(i / len(inliers))[:3]  # Get RGB color from colormap
+      ax.plot([pt0[0], pt1[0] + img1.shape[3]], [pt0[1], pt1[1]], color=color)
 
   ax.axis('off')
   plt.savefig('output.jpg', bbox_inches='tight')
