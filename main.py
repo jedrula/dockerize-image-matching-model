@@ -97,17 +97,25 @@ async def getMatchingMatrix(img1, img2):
   Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
   inliers = inliers > 0
 
-  return inliers
+  matched_points = []
+  for pt0, pt1, inlier in zip(mkpts0, mkpts1, inliers):
+    if inlier:
+      matched_points.append({
+        "point1": {"x": pt0[0], "y": pt0[1]},
+        "point2": {"x": pt1[0], "y": pt1[1]}
+      })
 
-# image1: UploadFile = File(...), image2: UploadFile = File(...) TODO make img1 and img2 params
+  return matched_points
+
+# image1: UploadFile = File(...), image2: UploadFile = File(...)
 @app.post("/get_matching_matrix")
 async def get_matching_matrix():
   img1_path = os.path.join('./images', 'szczytna', 'widokowa', 'widokowa2.png')
   img1 = get_tensor_image(open(img1_path, "rb").read())
   img2_path = os.path.join('./test-user-images', 'szczytnik_gdzies1.jpeg')
   img2 = get_tensor_image(open(img2_path, "rb").read())
-  inliers = await getMatchingMatrix(img1, img2)
-  return {"inliers": inliers.tolist()}
+  matched_points = await getMatchingMatrix(img1, img2)
+  return {"matched_points": matched_points}
 
 
 @app.post("/get_matching_with")
