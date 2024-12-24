@@ -1,5 +1,6 @@
 from enum import Enum
 import cv2
+import os
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -83,6 +84,31 @@ async def process_matching(img1, img2):
   plt.savefig('output.jpg', bbox_inches='tight')
   return FileResponse("./output.jpg", media_type="image/jpeg")
 
+
+async def getMatchingMatrix(img1, img2):
+  input_dict = {"image0": K.color.rgb_to_grayscale(img1),
+    "image1": K.color.rgb_to_grayscale(img2)}
+
+  with torch.no_grad():
+    correspondences = matcher(input_dict)
+
+  mkpts0 = correspondences['keypoints0'].cpu().numpy()
+  mkpts1 = correspondences['keypoints1'].cpu().numpy()
+  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+  inliers = inliers > 0
+
+  return inliers
+
+# image1: UploadFile = File(...), image2: UploadFile = File(...) TODO make img1 and img2 params
+@app.post("/get_matching_matrix")
+async def get_matching_matrix():
+  img1_path = os.path.join('./images', 'szczytna', 'widokowa', 'widokowa2.png')
+  img1 = get_tensor_image(open(img1_path, "rb").read())
+  img2_path = os.path.join('./test user images', 'szczytnik_gdzies1.jpeg')
+  img2 = get_tensor_image(open(img2_path, "rb").read())
+  return await getMatchingMatrix(img1, img2)
+
+
 @app.post("/get_matching_with")
 async def get_matching_with(image1: UploadFile = File(...), image_path: str = ""):
   img1 = get_tensor_image(await image1.read())
@@ -109,7 +135,6 @@ async def getSimilarityScore(tensorImage1, tensorImage2):
   return inliers.sum()
   
 def findFolderImages(folder_path):
-  import os
   images = []
   for filename in os.listdir(folder_path):
     if filename.endswith(".jpg") or filename.endswith(".png"):

@@ -4,6 +4,7 @@ WORKDIR /app
 EXPOSE 8000
 COPY ./models /app/models
 COPY ./images /app/images
+COPY ./test-user-images /app/test-user-images
 COPY ./main.py /app/main.py
 COPY ./ui /app/ui
 COPY ./requirements.txt /app/requirements.txt
