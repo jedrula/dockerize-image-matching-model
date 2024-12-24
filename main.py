@@ -104,9 +104,10 @@ async def getMatchingMatrix(img1, img2):
 async def get_matching_matrix():
   img1_path = os.path.join('./images', 'szczytna', 'widokowa', 'widokowa2.png')
   img1 = get_tensor_image(open(img1_path, "rb").read())
-  img2_path = os.path.join('./test user images', 'szczytnik_gdzies1.jpeg')
+  img2_path = os.path.join('./test-user-images', 'szczytnik_gdzies1.jpeg')
   img2 = get_tensor_image(open(img2_path, "rb").read())
-  return await getMatchingMatrix(img1, img2)
+  inliers = await getMatchingMatrix(img1, img2)
+  return {"inliers": inliers.tolist()}
 
 
 @app.post("/get_matching_with")
