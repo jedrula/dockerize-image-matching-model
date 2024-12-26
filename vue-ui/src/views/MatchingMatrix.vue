@@ -32,10 +32,10 @@ onMounted(async () => {
         :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
         alt="image 2"
       />
+      <pre>{{
+        JSON.stringify(matchingMatrixResult.matched_points, null, 2)
+      }}</pre>
     </template>
-    <pre v-if="matchingMatrixResult">{{
-      JSON.stringify(matchingMatrixResult, null, 2)
-    }}</pre>
   </div>
 </template>
 
