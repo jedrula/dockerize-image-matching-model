@@ -21,11 +21,14 @@ onMounted(async () => {
     <div v-if="errorMessage">{{ errorMessage }}</div>
     <template v-if="matchingMatrixResult">
       <img
+        :width="matchingMatrixResult.image1.width"
+        :height="matchingMatrixResult.image1.height"
         :src="`${apiUrl}/${matchingMatrixResult.image1.path}`"
         alt="image 1"
       />
-      <br />
       <img
+        :width="matchingMatrixResult.image2.width"
+        :height="matchingMatrixResult.image2.height"
         :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
         alt="image 2"
       />
