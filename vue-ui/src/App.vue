@@ -6,13 +6,15 @@ const progressBarWidth = ref(0);
 const resultMessage = ref("");
 const selectedFolder = ref("");
 const file = ref<File | null>(null);
-const bestMatch = ref("");
+const bestMatch = ref(""); // ./images/szczytna/widokowa/widokowa2.png
 const bestMatchScore = ref(0);
 const allScores = ref<Record<string, number>>({});
 const bestMatchPreviewUrl = ref("");
 
+const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}`,
+  baseURL: apiUrl,
 });
 
 const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
@@ -110,6 +112,12 @@ function handleFileChange(event: Event) {
           Best Match <small>(score {{ bestMatchScore }})</small>
         </h2>
         <p>{{ bestMatch }}</p>
+        <!-- best match img -->
+        <img
+          v-if="bestMatch"
+          :src="`${apiUrl}/${bestMatch}`"
+          alt="Best Match"
+        />
         <div v-if="bestMatchPreviewUrl">
           <img :src="bestMatchPreviewUrl" alt="Best Match Preview" />
         </div>
