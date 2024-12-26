@@ -95,7 +95,7 @@ async def getMatchingMatrix(img1, img2):
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
   _, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
-  inliers = inliers > 0
+  inliers = (inliers > 0).flatten()
 
   matched_points = []
   for pt0, pt1, inlier in zip(mkpts0, mkpts1, inliers):
@@ -117,8 +117,15 @@ async def get_matching_matrix():
   tensor2 = get_tensor_image(open(img2_path, "rb").read());
   img2 = tensor2['img']
   matched_points = await getMatchingMatrix(img1, img2)
+  print(matched_points)
   return {
-    "matched_points": matched_points,
+    "matched_points": [
+        {
+            "point1": {"x": float(pt["point1"]["x"]), "y": float(pt["point1"]["y"])},
+            "point2": {"x": float(pt["point2"]["x"]), "y": float(pt["point2"]["y"])}
+        }
+        for pt in matched_points
+    ],
     "image1": {
       "width": int(tensor1['w']),
       "height": int(tensor1['h']),
