@@ -117,7 +117,7 @@ async def get_matching_matrix():
   tensor2 = get_tensor_image(open(img2_path, "rb").read());
   img2 = tensor2['img']
   matched_points = await getMatchingMatrix(img1, img2)
-  return {"matched_points": matched_points, "image1": {"width": tensor1.w, "height": tensor1.h, "path": img1_path}, "image2": {"width": tensor2.w, "height": tensor2.h, "path": img2_path}}
+  return {"matched_points": matched_points, "image1": {"width": tensor1['w'], "height": tensor1['h'], "path": img1_path}, "image2": {"width": tensor2['w'], "height": tensor2['h'], "path": img2_path}}
 
 
 @app.post("/get_matching_with")

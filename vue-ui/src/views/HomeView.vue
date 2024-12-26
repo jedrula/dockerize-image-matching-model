@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import axios, { type AxiosProgressEvent } from "axios";
+import { findMatch, getBestMatchPreview, apiUrl } from "@/api/api";
 
 const progressBarWidth = ref(0);
 const resultMessage = ref("");
@@ -11,12 +11,6 @@ const bestMatchScore = ref(0);
 const allScores = ref<Record<string, number>>({});
 const bestMatchPreviewUrl = ref("");
 
-const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
-const api = axios.create({
-  baseURL: apiUrl,
-});
-
 const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
   progressBarWidth.value = Math.round(
     progressEvent.total ? (progressEvent.loaded * 100) / progressEvent.total : 0
@@ -24,19 +18,12 @@ const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
 };
 
 async function requestBestMatchPreview(file: File, bestMatch: string) {
-  const formData = new FormData();
-  formData.append("image1", file);
-
   try {
-    const response = await api.post(
-      `/get_matching_with?image_path=${encodeURIComponent(bestMatch)}`,
-      formData,
-      {
-        responseType: "blob",
-        onUploadProgress,
-      }
+    const response = await getBestMatchPreview(
+      file,
+      bestMatch,
+      onUploadProgress
     );
-
     bestMatchPreviewUrl.value = URL.createObjectURL(response.data);
   } catch (error) {
     console.error(error);
@@ -50,19 +37,12 @@ async function uploadFile() {
     return;
   }
 
-  const formData = new FormData();
-  formData.append("image1", file.value);
-
   try {
-    const response = await api.post(
-      `/find_match?folder_path=${selectedFolder.value}`,
-      formData,
-      {
-        onUploadProgress,
-      }
+    const data = await findMatch(
+      file.value,
+      selectedFolder.value,
+      onUploadProgress
     );
-
-    const data = response.data;
     bestMatch.value = data.best_match;
     bestMatchScore.value = data.score;
     allScores.value = data.all_scores;
