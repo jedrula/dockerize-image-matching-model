@@ -18,11 +18,7 @@
           :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
           alt="image 2"
         />
-        <canvas
-          ref="canvas"
-          :width="canvasWidth"
-          :height="canvasHeight"
-        ></canvas>
+        <svg ref="svg" :width="svgWidth" :height="svgHeight"></svg>
       </div>
       <pre>{{
         JSON.stringify(matchingMatrixResult.matched_points, null, 2)
@@ -37,47 +33,53 @@ import { getMatchingMatrix, apiUrl } from "@/api/api";
 
 const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
-const canvas = ref(null);
+const svg = ref(null);
 const image1 = ref(null);
 const image2 = ref(null);
-const canvasWidth = ref(0);
-const canvasHeight = ref(0);
+const svgWidth = ref(0);
+const svgHeight = ref(0);
 
 onMounted(async () => {
   try {
     matchingMatrixResult.value = await getMatchingMatrix();
     await nextTick();
-    const ctx = canvas.value.getContext("2d");
-    drawLines(ctx);
+    drawLines();
   } catch (error) {
     errorMessage.value =
       "An error occurred while fetching the matching matrix.";
   }
 });
 
-const drawLines = async (ctx) => {
-  if (!ctx || !image1.value || !image2.value || !matchingMatrixResult.value)
+const drawLines = async () => {
+  if (
+    !svg.value ||
+    !image1.value ||
+    !image2.value ||
+    !matchingMatrixResult.value
+  )
     return;
 
-  canvasWidth.value = image1.value.width + image2.value.width;
-  canvasHeight.value = Math.max(image1.value.height, image2.value.height);
+  svgWidth.value = image1.value.width + image2.value.width;
+  svgHeight.value = Math.max(image1.value.height, image2.value.height);
 
   await nextTick();
 
-  ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
-  ctx.lineWidth = 3;
+  const svgElement = svg.value;
+  svgElement.innerHTML = ""; // Clear previous lines
 
-  // let's scale coordinates by widths of corresponding images
   matchingMatrixResult.value.matched_points.forEach((match) => {
     const { point1, point2 } = match;
-    ctx.beginPath();
-    // let's make stroke style differnt in each iteration
-    ctx.strokeStyle = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-    console.log("1", point1.x, point1.y);
-    ctx.moveTo(point1.x, point1.y);
-    console.log("2", point2.x + image1.value.width, point2.y);
-    ctx.lineTo(point2.x + image1.value.width, point2.y);
-    ctx.stroke();
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", point1.x);
+    line.setAttribute("y1", point1.y);
+    line.setAttribute("x2", point2.x + image1.value.width);
+    line.setAttribute("y2", point2.y);
+    line.setAttribute(
+      "stroke",
+      `#${Math.floor(Math.random() * 16777215).toString(16)}`
+    );
+    line.setAttribute("stroke-width", "3");
+    svgElement.appendChild(line);
   });
 };
 </script>
@@ -94,7 +96,7 @@ const drawLines = async (ctx) => {
   display: flex;
 }
 
-canvas {
+svg {
   position: absolute;
   top: 0;
   left: 0;
