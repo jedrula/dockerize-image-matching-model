@@ -43,7 +43,7 @@ def get_tensor_image(img_bytes):
   img = cv2.resize(img, (w, h))
   img = K.image_to_tensor(img, False).float() /255.
   img = K.color.bgr_to_rgb(img)
-  return img.to(device)
+  return {"img": img.to(device), "w": w, "h": h}
 
 async def process_matching(img1, img2):
   input_dict = {"image0": K.color.rgb_to_grayscale(img1),
@@ -54,7 +54,7 @@ async def process_matching(img1, img2):
 
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
-  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+  _, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
   inliers = (inliers > 0).flatten()
 
   # Generate a colormap for the lines
@@ -94,7 +94,7 @@ async def getMatchingMatrix(img1, img2):
 
   mkpts0 = correspondences['keypoints0'].cpu().numpy()
   mkpts1 = correspondences['keypoints1'].cpu().numpy()
-  Fm, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
+  _, inliers = cv2.findFundamentalMat(mkpts0, mkpts1, cv2.USAC_MAGSAC, 0.5, 0.999999, 10000)
   inliers = inliers > 0
 
   matched_points = []
@@ -111,23 +111,25 @@ async def getMatchingMatrix(img1, img2):
 @app.post("/get_matching_matrix")
 async def get_matching_matrix():
   img1_path = os.path.join('./images', 'szczytna', 'widokowa', 'widokowa2.png')
-  img1 = get_tensor_image(open(img1_path, "rb").read())
+  tensor1 = get_tensor_image(open(img1_path, "rb").read());
+  img1 = tensor1['img']
   img2_path = os.path.join('./test-user-images', 'szczytnik_gdzies1.jpeg')
-  img2 = get_tensor_image(open(img2_path, "rb").read())
+  tensor2 = get_tensor_image(open(img2_path, "rb").read());
+  img2 = tensor2['img']
   matched_points = await getMatchingMatrix(img1, img2)
-  return {"matched_points": matched_points}
+  return {"matched_points": matched_points, "image1": {"width": tensor1.w, "height": tensor1.h, "path": img1_path}, "image2": {"width": tensor2.w, "height": tensor2.h, "path": img2_path}}
 
 
 @app.post("/get_matching_with")
 async def get_matching_with(image1: UploadFile = File(...), image_path: str = ""):
-  img1 = get_tensor_image(await image1.read())
-  img2 = get_tensor_image(open(image_path, "rb").read())
+  img1 = get_tensor_image(await image1.read())['img']
+  img2 = get_tensor_image(open(image_path, "rb").read())['img']
   return await process_matching(img1, img2)
 
 @app.post("/get_matching")
 async def get_matching(image1: UploadFile = File(...), image2: UploadFile = File(...)):
-  img1 = get_tensor_image(await image1.read())
-  img2 = get_tensor_image(await image2.read())
+  img1 = get_tensor_image(await image1.read())['img']
+  img2 = get_tensor_image(await image2.read())['img']
   return await process_matching(img1, img2)
 
 async def getSimilarityScore(tensorImage1, tensorImage2):
@@ -160,13 +162,13 @@ def regionNameToPath(region_name):
 # possible files we match against are in ./images/stokowka folder. File names are pologa.jpg, przewiecha.jpg, zachodnia.jpg
 @app.post("/find_match")
 async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
-  img1 = get_tensor_image(await image1.read())
+  img1 = get_tensor_image(await image1.read())['img']
   compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
 
   scores = []
 
   for img in compare_images:
-    img2 = get_tensor_image(open(img, "rb").read())
+    img2 = get_tensor_image(open(img, "rb").read())['img']
     score = await getSimilarityScore(img1, img2)
     scores.append(int(score))  # Convert NumPy int64 to native Python int
 
