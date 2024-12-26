@@ -202,6 +202,10 @@ async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
 @app.get("/images/{rest_of_path:path}")
 async def get_image(rest_of_path: str):
   return FileResponse(f"./images/{rest_of_path}", media_type="image/jpeg")
+
+@app.get("/test-user-images/{rest_of_path:path}")
+async def get_test_user_image(rest_of_path: str):
+  return FileResponse(f"./test-user-images/{rest_of_path}", media_type="image/jpeg")
   
 
 @app.get("/ui")

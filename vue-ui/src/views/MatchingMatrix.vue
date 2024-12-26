@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { getMatchingMatrix } from "@/api/api";
+import { getMatchingMatrix, apiUrl } from "@/api/api";
 
 const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
@@ -19,6 +19,17 @@ onMounted(async () => {
   <div class="matching-matrix">
     <h1>Matching Matrix</h1>
     <div v-if="errorMessage">{{ errorMessage }}</div>
+    <template v-if="matchingMatrixResult">
+      <img
+        :src="`${apiUrl}/${matchingMatrixResult.image1.path}`"
+        alt="image 1"
+      />
+      <br />
+      <img
+        :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
+        alt="image 2"
+      />
+    </template>
     <pre v-if="matchingMatrixResult">{{
       JSON.stringify(matchingMatrixResult, null, 2)
     }}</pre>
