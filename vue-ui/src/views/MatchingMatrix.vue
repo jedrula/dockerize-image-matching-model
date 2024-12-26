@@ -65,6 +65,7 @@ const drawLines = async (ctx) => {
   await nextTick();
 
   ctx.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
+  ctx.lineWidth = 3;
 
   // let's scale coordinates by widths of corresponding images
   matchingMatrixResult.value.matched_points.forEach((match) => {
