@@ -18,7 +18,20 @@
           :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
           alt="image 2"
         />
-        <svg ref="svg" :width="svgWidth" :height="svgHeight"></svg>
+        <svg :width="svgWidth" :height="svgHeight">
+          <template v-if="svgWidth && svgHeight">
+            <line
+              v-for="(line, index) in lines"
+              :key="index"
+              :x1="line.x1"
+              :y1="line.y1"
+              :x2="line.x2"
+              :y2="line.y2"
+              :stroke="line.stroke"
+              stroke-width="3"
+            />
+          </template>
+        </svg>
       </div>
       <pre>{{
         JSON.stringify(matchingMatrixResult.matched_points, null, 2)
@@ -28,12 +41,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import { getMatchingMatrix, apiUrl } from "@/api/api";
 
 const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
-const svg = ref(null);
 const image1 = ref(null);
 const image2 = ref(null);
 const svgWidth = ref(0);
@@ -43,45 +55,33 @@ onMounted(async () => {
   try {
     matchingMatrixResult.value = await getMatchingMatrix();
     await nextTick();
-    drawLines();
+    updateSvgDimensions();
   } catch (error) {
     errorMessage.value =
       "An error occurred while fetching the matching matrix.";
   }
 });
 
-const drawLines = async () => {
-  if (
-    !svg.value ||
-    !image1.value ||
-    !image2.value ||
-    !matchingMatrixResult.value
-  )
-    return;
-
-  svgWidth.value = image1.value.width + image2.value.width;
-  svgHeight.value = Math.max(image1.value.height, image2.value.height);
-
-  await nextTick();
-
-  const svgElement = svg.value;
-  svgElement.innerHTML = ""; // Clear previous lines
-
-  matchingMatrixResult.value.matched_points.forEach((match) => {
-    const { point1, point2 } = match;
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", point1.x);
-    line.setAttribute("y1", point1.y);
-    line.setAttribute("x2", point2.x + image1.value.width);
-    line.setAttribute("y2", point2.y);
-    line.setAttribute(
-      "stroke",
-      `#${Math.floor(Math.random() * 16777215).toString(16)}`
-    );
-    line.setAttribute("stroke-width", "3");
-    svgElement.appendChild(line);
-  });
+const updateSvgDimensions = () => {
+  if (image1.value && image2.value) {
+    svgWidth.value = image1.value.width + image2.value.width;
+    svgHeight.value = Math.max(image1.value.height, image2.value.height);
+  }
 };
+
+const lines = computed(() => {
+  if (!matchingMatrixResult.value) return [];
+  return matchingMatrixResult.value.matched_points.map((match) => {
+    const { point1, point2 } = match;
+    return {
+      x1: point1.x,
+      y1: point1.y,
+      x2: point2.x + image1.value.width,
+      y2: point2.y,
+      stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+    };
+  });
+});
 </script>
 
 <style scoped>
