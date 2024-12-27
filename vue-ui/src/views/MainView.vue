@@ -64,13 +64,25 @@ const lines = computed(() => {
   });
 });
 
-const shownLines = computed(() =>
-  lines.value.filter((line) => line.show.value || line.hovered.value)
+const pickedLines = computed(() =>
+  lines.value.filter((line) => line.show.value)
 );
+
+const hoveredLines = computed(() =>
+  lines.value.filter((line) => line.hovered.value)
+);
+
+const shownLines = computed(() => pickedLines.value.concat(hoveredLines.value));
 
 const circleClicked = (line) => {
   console.log("circle clicked", line);
   line.show.value = !line.show.value;
+};
+
+const clearLines = () => {
+  shownLines.value.forEach((line) => {
+    line.show.value = false;
+  });
 };
 </script>
 
@@ -148,6 +160,13 @@ const circleClicked = (line) => {
         </svg>
       </div>
     </div>
+    <button
+      @click="clearLines"
+      :disabled="!pickedLines.length"
+      style="margin-top: 20px"
+    >
+      Clear Lines
+    </button>
   </div>
 </template>
 
