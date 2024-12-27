@@ -31,6 +31,8 @@
                   r="6"
                   :fill="line.color"
                   @click="circleClicked(line)"
+                  @mouseover="line.hovered.value = true"
+                  @mouseleave="line.hovered.value = false"
                   :class="{ shown: line.show.value }"
                 />
                 <circle
@@ -39,6 +41,8 @@
                   r="6"
                   :fill="line.color"
                   @click="circleClicked(line)"
+                  @mouseover="line.hovered.value = true"
+                  @mouseleave="line.hovered.value = false"
                   :class="{ shown: line.show.value }"
                 />
               </template>
@@ -51,6 +55,8 @@
                 :y2="line.y2"
                 :stroke="line.color"
                 stroke-width="3"
+                @mouseover="line.hovered.value = true"
+                @mouseleave="line.hovered.value = false"
               />
             </template>
           </svg>
@@ -103,12 +109,13 @@ const lines = computed(() => {
       y2: point2.y,
       color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       show: ref(false),
+      hovered: ref(false),
     };
   });
 });
 
 const shownLines = computed(() =>
-  lines.value.filter((line) => line.show.value)
+  lines.value.filter((line) => line.show.value || line.hovered.value)
 );
 
 const circleClicked = (line) => {
