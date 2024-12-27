@@ -1,7 +1,87 @@
+<script setup lang="ts">
+import { ref, nextTick, computed } from "vue";
+import { getMatchingMatrix, apiUrl } from "@/api/api";
+
+const matchingMatrixResult = ref(null);
+const errorMessage = ref("");
+const image1 = ref(null);
+const image2 = ref(null);
+const svgWidth = ref(0);
+const svgHeight = ref(0);
+const file1 = ref<File | null>(null);
+const file2 = ref<File | null>(null);
+
+const handleFileChange1 = (event: Event) => {
+  const fileInput = event.target as HTMLInputElement;
+  file1.value = fileInput.files?.[0] || null;
+};
+
+const handleFileChange2 = (event: Event) => {
+  const fileInput = event.target as HTMLInputElement;
+  file2.value = fileInput.files?.[0] || null;
+};
+
+const uploadFiles = async () => {
+  if (!file1.value || !file2.value) {
+    errorMessage.value = "Please select both files.";
+    return;
+  }
+
+  try {
+    matchingMatrixResult.value = await getMatchingMatrix(
+      file1.value,
+      file2.value
+    );
+    await nextTick();
+    updateSvgDimensions();
+  } catch (error) {
+    errorMessage.value = "An error occurred while uploading the files.";
+    console.error(error);
+  }
+};
+
+const updateSvgDimensions = () => {
+  if (image1.value && image2.value) {
+    svgWidth.value = image1.value.width + image2.value.width;
+    svgHeight.value = Math.max(image1.value.height, image2.value.height);
+  }
+};
+
+const lines = computed(() => {
+  if (!matchingMatrixResult.value) return [];
+  return matchingMatrixResult.value.matched_points.map((match) => {
+    const { point1, point2 } = match;
+    return {
+      x1: point1.x,
+      y1: point1.y,
+      x2: point2.x + image1.value.width,
+      y2: point2.y,
+      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      show: ref(false),
+      hovered: ref(false),
+    };
+  });
+});
+
+const shownLines = computed(() =>
+  lines.value.filter((line) => line.show.value || line.hovered.value)
+);
+
+const circleClicked = (line) => {
+  console.log("circle clicked", line);
+  line.show.value = !line.show.value;
+};
+</script>
+
 <template>
   <div class="matching-matrix">
     <h1>Matching Matrix</h1>
     <div v-if="errorMessage">{{ errorMessage }}</div>
+    <div class="file-inputs">
+      <input type="file" @change="handleFileChange1" />
+      <input type="file" @change="handleFileChange2" />
+      <button @click="uploadFiles">Submit</button>
+    </div>
     <template v-if="matchingMatrixResult">
       <div class="images-container">
         <img
@@ -69,66 +149,15 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from "vue";
-import { getMatchingMatrix, apiUrl } from "@/api/api";
-
-const matchingMatrixResult = ref(null);
-const errorMessage = ref("");
-const image1 = ref(null);
-const image2 = ref(null);
-const svgWidth = ref(0);
-const svgHeight = ref(0);
-
-onMounted(async () => {
-  try {
-    matchingMatrixResult.value = await getMatchingMatrix();
-    await nextTick();
-    updateSvgDimensions();
-  } catch (error) {
-    errorMessage.value =
-      "An error occurred while fetching the matching matrix.";
-  }
-});
-
-const updateSvgDimensions = () => {
-  if (image1.value && image2.value) {
-    svgWidth.value = image1.value.width + image2.value.width;
-    svgHeight.value = Math.max(image1.value.height, image2.value.height);
-  }
-};
-
-const lines = computed(() => {
-  if (!matchingMatrixResult.value) return [];
-  return matchingMatrixResult.value.matched_points.map((match) => {
-    const { point1, point2 } = match;
-    return {
-      x1: point1.x,
-      y1: point1.y,
-      x2: point2.x + image1.value.width,
-      y2: point2.y,
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-      show: ref(false),
-      hovered: ref(false),
-    };
-  });
-});
-
-const shownLines = computed(() =>
-  lines.value.filter((line) => line.show.value || line.hovered.value)
-);
-
-const circleClicked = (line) => {
-  console.log("circle clicked", line);
-  line.show.value = !line.show.value;
-};
-</script>
-
 <style scoped>
 .matching-matrix {
   padding: 20px;
   background-color: #fff;
   border-radius: 5px;
+}
+
+.file-inputs {
+  margin-bottom: 20px;
 }
 
 .images-container {
@@ -137,13 +166,6 @@ const circleClicked = (line) => {
 }
 
 .svg-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-}
-
-svg {
   position: absolute;
   top: 0;
   left: 0;

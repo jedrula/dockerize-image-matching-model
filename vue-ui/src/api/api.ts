@@ -6,16 +6,6 @@ const api = axios.create({
   baseURL: apiUrl,
 });
 
-export const getMatchingMatrix = async () => {
-  try {
-    const response = await api.post("/get_matching_matrix");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching matching matrix:", error);
-    throw error;
-  }
-};
-
 export const findMatch = async (
   file: File,
   folder: string,
@@ -59,6 +49,20 @@ export const getBestMatchPreview = async (
     return response;
   } catch (error) {
     console.error("Error fetching best match preview:", error);
+    throw error;
+  }
+};
+
+export const getMatchingMatrix = async (file1: File, file2: File) => {
+  const formData = new FormData();
+  formData.append("image1", file1);
+  formData.append("image2", file2);
+
+  try {
+    const response = await api.post("/get_matching_matrix", formData);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching matching matrix with files:", error);
     throw error;
   }
 };
