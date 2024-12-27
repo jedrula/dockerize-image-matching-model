@@ -7,6 +7,7 @@ import { RouterLink, RouterView } from "vue-router";
   <nav>
     <RouterLink to="/">Home</RouterLink>
     <RouterLink to="/matching_matrix">Matching Matrix</RouterLink>
+    <RouterLink to="/base">Base</RouterLink>
   </nav>
   <RouterView />
 </template>

@@ -29,6 +29,29 @@ export const findMatch = async (
   }
 };
 
+export const findMatchingMatrix = async (
+  file: File,
+  folder: string,
+  onUploadProgress: (progressEvent: AxiosProgressEvent) => void
+) => {
+  const formData = new FormData();
+  formData.append("image1", file);
+
+  try {
+    const response = await api.post(
+      `/find_matching_matrix?folder_path=${folder}`,
+      formData,
+      {
+        onUploadProgress,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
+
 export const getBestMatchPreview = async (
   file: File,
   bestMatch: string,
