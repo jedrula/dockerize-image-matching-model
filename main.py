@@ -33,6 +33,10 @@ matcher = KF.LoFTR(pretrained=None)
 matcher.load_state_dict(torch.load("./models/loftr_outdoor.ckpt")['state_dict'])
 matcher = matcher.to(device).eval()
 
+class RegionName(str, Enum):
+  stokowka = "stokowka"
+  szczytna_widokowa = "szczytna_widokowa"
+
 #bytes-image to tensor
 def get_tensor_image(img_bytes):
   img = np.asarray(bytearray(img_bytes), dtype="uint8")
@@ -137,6 +141,49 @@ async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile
     }
   }
 
+@app.post("/find_matching_matrix")
+async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = File(...)):
+  tensor1 = get_tensor_image(await image1.read())
+  img1 = tensor1['img']
+  compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+
+  best_match = None
+  best_score = -1
+  best_matched_points = None
+  best_tensor_match = None
+
+  for img in compare_images:
+    tensor2 = get_tensor_image(open(img, "rb").read())
+    img2 = tensor2['img']
+    matched_points = await getMatchingMatrix(img1, img2)
+    score = len(matched_points)
+
+    if score > best_score:
+      best_score = score
+      best_match = img
+      best_matched_points = matched_points
+      best_tensor_match = tensor2
+
+  return {
+    "matched_points": [
+      {
+        "point1": {"x": float(pt["point1"]["x"]), "y": float(pt["point1"]["y"])},
+        "point2": {"x": float(pt["point2"]["x"]), "y": float(pt["point2"]["y"])}
+      }
+      for pt in best_matched_points
+    ],
+    "image1": {
+      "width": int(tensor1['w']),
+      "height": int(tensor1['h']),
+    },
+    "image2": {
+      "width": int(best_tensor_match['w']),
+      "height": int(best_tensor_match['h']),
+      "path": best_match
+    }
+  }
+
+
 
 @app.post("/get_matching_with")
 async def get_matching_with(image1: UploadFile = File(...), image_path: str = ""):
@@ -169,10 +216,6 @@ def findFolderImages(folder_path):
     if filename.endswith(".jpg") or filename.endswith(".png"):
       images.append(os.path.join(folder_path, filename))
   return images
-
-class RegionName(str, Enum):
-  stokowka = "stokowka"
-  szczytna_widokowa = "szczytna_widokowa"
 
 def regionNameToPath(region_name):
   return region_name.replace("_", "/")
