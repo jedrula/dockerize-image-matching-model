@@ -29,15 +29,17 @@
                   :cx="line.x1"
                   :cy="line.y1"
                   r="6"
-                  fill="green"
+                  :fill="line.color"
                   @click="circleClicked(line)"
+                  :class="{ shown: line.show.value }"
                 />
                 <circle
                   :cx="line.x2"
                   :cy="line.y2"
                   r="6"
-                  fill="green"
+                  :fill="line.color"
                   @click="circleClicked(line)"
+                  :class="{ shown: line.show.value }"
                 />
               </template>
               <line
@@ -47,7 +49,7 @@
                 :y1="line.y1"
                 :x2="line.x2"
                 :y2="line.y2"
-                :stroke="line.stroke"
+                :stroke="line.color"
                 stroke-width="3"
               />
             </template>
@@ -99,7 +101,7 @@ const lines = computed(() => {
       y1: point1.y,
       x2: point2.x + image1.value.width,
       y2: point2.y,
-      stroke: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       show: ref(false),
     };
   });
@@ -145,5 +147,14 @@ pre {
   padding: 10px;
   border-radius: 5px;
   overflow-x: auto;
+}
+
+circle {
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+circle.shown {
+  opacity: 1;
 }
 </style>
