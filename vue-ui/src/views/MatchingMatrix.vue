@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from "vue";
-import { getMatchingMatrix, apiUrl } from "@/api/api";
+import { getMatchingMatrix } from "@/api/api"; // apiUrl
 
 const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
@@ -10,15 +10,23 @@ const svgWidth = ref(0);
 const svgHeight = ref(0);
 const file1 = ref<File | null>(null);
 const file2 = ref<File | null>(null);
+const image1Url = ref("");
+const image2Url = ref("");
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
   file1.value = fileInput.files?.[0] || null;
+  if (file1.value) {
+    image1Url.value = URL.createObjectURL(file1.value);
+  }
 };
 
 const handleFileChange2 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
   file2.value = fileInput.files?.[0] || null;
+  if (file2.value) {
+    image2Url.value = URL.createObjectURL(file2.value);
+  }
 };
 
 const uploadFiles = async () => {
@@ -82,70 +90,67 @@ const circleClicked = (line) => {
       <input type="file" @change="handleFileChange2" />
       <button @click="uploadFiles">Submit</button>
     </div>
-    <template v-if="matchingMatrixResult">
-      <div class="images-container">
-        <img
-          ref="image1"
-          :width="matchingMatrixResult.image1.width"
-          :height="matchingMatrixResult.image1.height"
-          :src="`${apiUrl}/${matchingMatrixResult.image1.path}`"
-          alt="image 1"
-        />
-        <img
-          ref="image2"
-          :width="matchingMatrixResult.image2.width"
-          :height="matchingMatrixResult.image2.height"
-          :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
-          alt="image 2"
-        />
-        <div
-          class="svg-wrapper"
-          :style="{ width: svgWidth + 'px', height: svgHeight + 'px' }"
-        >
-          <svg :width="svgWidth" :height="svgHeight">
-            <template v-if="svgWidth && svgHeight">
-              <template v-for="(line, index) in lines" :key="`circle-${index}`">
-                <circle
-                  :cx="line.x1"
-                  :cy="line.y1"
-                  r="6"
-                  :fill="line.color"
-                  @click="circleClicked(line)"
-                  @mouseover="line.hovered.value = true"
-                  @mouseleave="line.hovered.value = false"
-                  :class="{ shown: line.show.value }"
-                />
-                <circle
-                  :cx="line.x2"
-                  :cy="line.y2"
-                  r="6"
-                  :fill="line.color"
-                  @click="circleClicked(line)"
-                  @mouseover="line.hovered.value = true"
-                  @mouseleave="line.hovered.value = false"
-                  :class="{ shown: line.show.value }"
-                />
-              </template>
-              <line
-                v-for="(line, index) in shownLines"
-                :key="`line-${index}`"
-                :x1="line.x1"
-                :y1="line.y1"
-                :x2="line.x2"
-                :y2="line.y2"
-                :stroke="line.color"
-                stroke-width="3"
+    <div class="images-container">
+      <img
+        ref="image1"
+        v-if="image1Url"
+        :width="matchingMatrixResult?.image1?.width ?? 'auto'"
+        :height="matchingMatrixResult?.image1?.height ?? 'auto'"
+        :src="image1Url"
+        alt="image 1"
+      />
+      <img
+        ref="image2"
+        v-if="image2Url"
+        :width="matchingMatrixResult?.image2?.width ?? 'auto'"
+        :height="matchingMatrixResult?.image2?.height ?? 'auto'"
+        :src="image2Url"
+        alt="image 2"
+      />
+      <div
+        class="svg-wrapper"
+        :style="{ width: svgWidth + 'px', height: svgHeight + 'px' }"
+      >
+        <svg :width="svgWidth" :height="svgHeight">
+          <template v-if="svgWidth && svgHeight">
+            <template v-for="(line, index) in lines" :key="`circle-${index}`">
+              <circle
+                :cx="line.x1"
+                :cy="line.y1"
+                r="6"
+                :fill="line.color"
+                @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
                 @mouseleave="line.hovered.value = false"
+                :class="{ shown: line.show.value }"
+              />
+              <circle
+                :cx="line.x2"
+                :cy="line.y2"
+                r="6"
+                :fill="line.color"
+                @click="circleClicked(line)"
+                @mouseover="line.hovered.value = true"
+                @mouseleave="line.hovered.value = false"
+                :class="{ shown: line.show.value }"
               />
             </template>
-          </svg>
-        </div>
+            <line
+              v-for="(line, index) in shownLines"
+              :key="`line-${index}`"
+              :x1="line.x1"
+              :y1="line.y1"
+              :x2="line.x2"
+              :y2="line.y2"
+              :stroke="line.color"
+              stroke-width="3"
+              @mouseover="line.hovered.value = true"
+              @mouseleave="line.hovered.value = false"
+            />
+          </template>
+        </svg>
       </div>
-      <pre>{{
-        JSON.stringify(matchingMatrixResult.matched_points, null, 2)
-      }}</pre>
-    </template>
+    </div>
   </div>
 </template>
 
