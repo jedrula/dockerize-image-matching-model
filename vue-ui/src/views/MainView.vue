@@ -11,6 +11,8 @@ const svgHeight = ref(0);
 const file1 = ref<File | null>(null);
 const selectedFolder = ref("");
 const image1Url = ref("");
+const isMobile = ref(false);
+const showImage1 = ref(true); // Ref to toggle images in mobile view
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -42,22 +44,34 @@ const uploadFileAndFolder = async () => {
 };
 
 const updateSvgDimensions = () => {
-  if (image1.value && image2.value) {
-    svgWidth.value = image1.value.width + image2.value.width;
-    svgHeight.value = Math.max(image1.value.height, image2.value.height);
+  if (matchingMatrixResult.value.image1.width) {
+    if (isMobile.value) {
+      svgWidth.value = matchingMatrixResult.value.image1.width;
+      svgHeight.value = matchingMatrixResult.value.image1.height;
+    } else {
+      svgWidth.value =
+        matchingMatrixResult.value.image1.width +
+        matchingMatrixResult.value.image2.width;
+      svgHeight.value = Math.max(
+        matchingMatrixResult.value.image1.height,
+        matchingMatrixResult.value.image2.height
+      );
+    }
   }
 };
 
 const lines = computed(() => {
   if (!matchingMatrixResult.value) return [];
+  debugger;
   return matchingMatrixResult.value.matched_points.map((match) => {
     const { point1, point2 } = match;
     return {
       x1: point1.x,
       y1: point1.y,
-      x2: point2.x + image1.value.width,
+      x2:
+        point2.x +
+        (isMobile.value ? 0 : matchingMatrixResult.value.image1.width),
       y2: point2.y,
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
       show: ref(false),
       hovered: ref(false),
     };
@@ -84,6 +98,10 @@ const clearLines = () => {
     line.show.value = false;
   });
 };
+
+const swapImage = () => {
+  showImage1.value = !showImage1.value;
+};
 </script>
 
 <template>
@@ -101,16 +119,16 @@ const clearLines = () => {
     </div>
     <div class="images-container">
       <img
+        v-if="image1Url && (!isMobile || showImage1)"
         ref="image1"
-        v-if="image1Url"
         :width="matchingMatrixResult?.image1?.width ?? 'auto'"
         :height="matchingMatrixResult?.image1?.height ?? 'auto'"
         :src="image1Url"
         alt="image 1"
       />
       <img
+        v-if="matchingMatrixResult?.image2 && (!isMobile || !showImage1)"
         ref="image2"
-        v-if="matchingMatrixResult?.image2"
         :width="matchingMatrixResult?.image2?.width ?? 'auto'"
         :height="matchingMatrixResult?.image2?.height ?? 'auto'"
         :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
@@ -124,38 +142,42 @@ const clearLines = () => {
           <template v-if="svgWidth && svgHeight">
             <template v-for="(line, index) in lines" :key="`circle-${index}`">
               <circle
+                v-if="!isMobile || showImage1"
                 :cx="line.x1"
                 :cy="line.y1"
-                r="6"
-                :fill="line.color"
+                :r="line.show.value ? 9 : 6"
+                :fill="line.show.value ? 'green' : 'gray'"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
                 @mouseleave="line.hovered.value = false"
                 :class="{ shown: line.show.value }"
               />
               <circle
+                v-if="!isMobile || !showImage1"
                 :cx="line.x2"
                 :cy="line.y2"
-                r="6"
-                :fill="line.color"
+                :r="line.show.value ? 9 : 6"
+                :fill="line.show.value ? 'green' : 'gray'"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
                 @mouseleave="line.hovered.value = false"
                 :class="{ shown: line.show.value }"
               />
             </template>
-            <line
-              v-for="(line, index) in shownLines"
-              :key="`line-${index}`"
-              :x1="line.x1"
-              :y1="line.y1"
-              :x2="line.x2"
-              :y2="line.y2"
-              :stroke="line.color"
-              stroke-width="3"
-              @mouseover="line.hovered.value = true"
-              @mouseleave="line.hovered.value = false"
-            />
+            <template v-if="!isMobile">
+              <line
+                v-for="(line, index) in shownLines"
+                :key="`line-${index}`"
+                :x1="line.x1"
+                :y1="line.y1"
+                :x2="line.x2"
+                :y2="line.y2"
+                stroke="green"
+                stroke-width="3"
+                @mouseover="line.hovered.value = true"
+                @mouseleave="line.hovered.value = false"
+              />
+            </template>
           </template>
         </svg>
       </div>
@@ -165,7 +187,14 @@ const clearLines = () => {
       :disabled="!pickedLines.length"
       style="margin-top: 20px"
     >
-      Clear Lines
+      Clear {{ isMobile ? "Dots" : "Lines" }}
+    </button>
+    <button
+      v-if="isMobile"
+      @click="swapImage"
+      style="margin-top: 20px; margin-left: 10px"
+    >
+      Swap Image
     </button>
   </div>
 </template>
