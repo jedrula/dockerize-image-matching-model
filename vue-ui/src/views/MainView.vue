@@ -62,7 +62,7 @@ const secondImageWidthPercentage = computed(() => {
 const svgHeight = computed(() => {
   if (!matchingMatrixResult.value) return 0;
   if (showImage1.value && showImage2.value)
-    return Math.max(
+    return Math.min(
       matchingMatrixResult.value.image1.height,
       matchingMatrixResult.value.image2.height
     );
@@ -240,6 +240,10 @@ const swapImage = () => {
 .images-container {
   position: relative;
   display: flex;
+}
+
+.mages-container img {
+  height: fit-content;
 }
 
 .svg-wrapper {
