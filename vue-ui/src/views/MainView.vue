@@ -6,8 +6,6 @@ const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
 const image1 = ref(null);
 const image2 = ref(null);
-const svgWidth = ref(0);
-const svgHeight = ref(0);
 const file1 = ref<File | null>(null);
 const selectedFolder = ref("");
 const image1Url = ref("");
@@ -35,7 +33,6 @@ const uploadFileAndFolder = async () => {
       () => {}
     );
     await nextTick();
-    updateSvgDimensions();
   } catch (error) {
     errorMessage.value =
       "An error occurred while uploading the file and folder.";
@@ -43,22 +40,23 @@ const uploadFileAndFolder = async () => {
   }
 };
 
-const updateSvgDimensions = () => {
-  if (matchingMatrixResult.value.image1.width) {
-    if (isMobile.value) {
-      svgWidth.value = matchingMatrixResult.value.image1.width;
-      svgHeight.value = matchingMatrixResult.value.image1.height;
-    } else {
-      svgWidth.value =
-        matchingMatrixResult.value.image1.width +
+const svgWidth = computed(() => {
+  if (!matchingMatrixResult.value?.image1?.width) return 0;
+  return isMobile.value
+    ? matchingMatrixResult.value.image1.width
+    : matchingMatrixResult.value.image1.width +
         matchingMatrixResult.value.image2.width;
-      svgHeight.value = Math.max(
+});
+
+const svgHeight = computed(() => {
+  if (!matchingMatrixResult.value?.image1?.height) return 0;
+  return isMobile.value
+    ? matchingMatrixResult.value.image1.height
+    : Math.max(
         matchingMatrixResult.value.image1.height,
         matchingMatrixResult.value.image2.height
       );
-    }
-  }
-};
+});
 
 const lines = computed(() => {
   if (!matchingMatrixResult.value) return [];
@@ -67,9 +65,7 @@ const lines = computed(() => {
     return {
       x1: point1.x,
       y1: point1.y,
-      x2:
-        point2.x +
-        (isMobile.value ? 0 : matchingMatrixResult.value.image1.width),
+      x2: point2.x,
       y2: point2.y,
       show: ref(false),
       hovered: ref(false),
@@ -145,9 +141,9 @@ const swapImage = () => {
                 :cx="line.x1"
                 :cy="line.y1"
                 :r="line.show.value ? 9 : 6"
-                stroke="green"
-                stroke-width="3"
-                fill="green"
+                :stroke="line.show.value ? 'green' : 'black'"
+                stroke-width="2"
+                :fill="line.show.value ? 'green' : 'white'"
                 :fill-opacity="line.show.value ? 1 : 0.5"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
@@ -156,12 +152,16 @@ const swapImage = () => {
               />
               <circle
                 v-if="!isMobile || !showImage1"
-                :cx="line.x2"
+                :cx="
+                  showImage1
+                    ? line.x2 + matchingMatrixResult.image1.width
+                    : line.x2
+                "
                 :cy="line.y2"
                 :r="line.show.value ? 9 : 6"
-                stroke="green"
-                stroke-width="3"
-                fill="green"
+                :stroke="line.show.value ? 'green' : 'black'"
+                stroke-width="2"
+                :fill="line.show.value ? 'green' : 'white'"
                 :fill-opacity="line.show.value ? 1 : 0.5"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
@@ -175,7 +175,7 @@ const swapImage = () => {
                 :key="`line-${index}`"
                 :x1="line.x1"
                 :y1="line.y1"
-                :x2="line.x2"
+                :x2="line.x2 + matchingMatrixResult.image1.width"
                 :y2="line.y2"
                 stroke="green"
                 stroke-width="3"
