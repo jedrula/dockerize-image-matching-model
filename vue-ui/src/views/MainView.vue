@@ -62,7 +62,6 @@ const updateSvgDimensions = () => {
 
 const lines = computed(() => {
   if (!matchingMatrixResult.value) return [];
-  debugger;
   return matchingMatrixResult.value.matched_points.map((match) => {
     const { point1, point2 } = match;
     return {
@@ -199,8 +198,16 @@ const swapImage = () => {
       v-if="isMobile"
       @click="swapImage"
       style="margin-top: 20px; margin-left: 10px"
+      :disabled="!matchingMatrixResult"
     >
       Swap Image
+    </button>
+    <button
+      @click="isMobile = !isMobile"
+      style="margin-top: 20px; margin-left: 10px"
+      :disabled="!matchingMatrixResult"
+    >
+      Toggle View
     </button>
   </div>
 </template>
