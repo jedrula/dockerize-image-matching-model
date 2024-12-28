@@ -242,7 +242,7 @@ const swapImage = () => {
   display: flex;
 }
 
-.mages-container img {
+.images-container img {
   height: fit-content;
 }
 
