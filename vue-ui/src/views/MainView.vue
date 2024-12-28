@@ -11,7 +11,7 @@ const svgHeight = ref(0);
 const file1 = ref<File | null>(null);
 const selectedFolder = ref("");
 const image1Url = ref("");
-const isMobile = ref(false);
+const isMobile = ref(true);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 
 const handleFileChange1 = (event: Event) => {
@@ -146,7 +146,10 @@ const swapImage = () => {
                 :cx="line.x1"
                 :cy="line.y1"
                 :r="line.show.value ? 9 : 6"
-                :fill="line.show.value ? 'green' : 'gray'"
+                stroke="green"
+                stroke-width="3"
+                fill="green"
+                :fill-opacity="line.show.value ? 1 : 0.5"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
                 @mouseleave="line.hovered.value = false"
@@ -157,7 +160,10 @@ const swapImage = () => {
                 :cx="line.x2"
                 :cy="line.y2"
                 :r="line.show.value ? 9 : 6"
-                :fill="line.show.value ? 'green' : 'gray'"
+                stroke="green"
+                stroke-width="3"
+                fill="green"
+                :fill-opacity="line.show.value ? 1 : 0.5"
                 @click="circleClicked(line)"
                 @mouseover="line.hovered.value = true"
                 @mouseleave="line.hovered.value = false"
@@ -228,9 +234,12 @@ pre {
   overflow-x: auto;
 }
 
-circle {
+circle:hover {
   cursor: pointer;
-  opacity: 0.5;
+}
+
+circle {
+  opacity: 0.8;
 }
 
 circle.shown {
