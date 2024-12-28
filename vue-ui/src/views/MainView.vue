@@ -62,7 +62,7 @@ const secondImageWidthPercentage = computed(() => {
 const svgHeight = computed(() => {
   if (!matchingMatrixResult.value) return 0;
   if (showImage1.value && showImage2.value)
-    return Math.min(
+    return Math.max(
       matchingMatrixResult.value.image1.height,
       matchingMatrixResult.value.image2.height
     );
