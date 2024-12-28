@@ -11,6 +11,7 @@ const selectedFolder = ref("");
 const image1Url = ref("");
 const isMobile = ref(true);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
+const showImage2 = computed(() => !isMobile.value || !showImage1.value);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -48,14 +49,26 @@ const svgWidth = computed(() => {
         matchingMatrixResult.value.image2.width;
 });
 
+const firstImageWidthPercentage = computed(() => {
+  if (!matchingMatrixResult.value?.image1?.width) return 0;
+  return (matchingMatrixResult.value.image1.width / svgWidth.value) * 100;
+});
+
+const secondImageWidthPercentage = computed(() => {
+  if (!matchingMatrixResult.value?.image2?.width) return 0;
+  return (matchingMatrixResult.value.image2.width / svgWidth.value) * 100;
+});
+
 const svgHeight = computed(() => {
-  if (!matchingMatrixResult.value?.image1?.height) return 0;
-  return isMobile.value
-    ? matchingMatrixResult.value.image1.height
-    : Math.max(
-        matchingMatrixResult.value.image1.height,
-        matchingMatrixResult.value.image2.height
-      );
+  if (!matchingMatrixResult.value) return 0;
+  if (showImage1.value && showImage2.value)
+    return Math.max(
+      matchingMatrixResult.value.image1.height,
+      matchingMatrixResult.value.image2.height
+    );
+  if (showImage1.value) return matchingMatrixResult.value.image1.height;
+  if (showImage2.value) return matchingMatrixResult.value.image2.height;
+  return 0;
 });
 
 const lines = computed(() => {
@@ -112,28 +125,29 @@ const swapImage = () => {
       </select>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
-    <div class="images-container">
+    <div
+      class="images-container"
+      :style="{
+        width: `${svgWidth}px`,
+        maxWidth: `min(100%, ${svgWidth}px)`,
+      }"
+    >
       <img
         v-if="image1Url && (!isMobile || showImage1)"
         ref="image1"
-        :width="matchingMatrixResult?.image1?.width ?? 'auto'"
-        :height="matchingMatrixResult?.image1?.height ?? 'auto'"
+        :width="`${firstImageWidthPercentage}%`"
         :src="image1Url"
         alt="image 1"
       />
       <img
-        v-if="matchingMatrixResult?.image2 && (!isMobile || !showImage1)"
+        v-if="matchingMatrixResult?.image2 && showImage2"
         ref="image2"
-        :width="matchingMatrixResult?.image2?.width ?? 'auto'"
-        :height="matchingMatrixResult?.image2?.height ?? 'auto'"
+        :width="`${secondImageWidthPercentage}%`"
         :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
         alt="image 2"
       />
-      <div
-        class="svg-wrapper"
-        :style="{ width: svgWidth + 'px', height: svgHeight + 'px' }"
-      >
-        <svg :width="svgWidth" :height="svgHeight">
+      <div class="svg-wrapper">
+        <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
           <template v-if="svgWidth && svgHeight">
             <template v-for="(line, index) in lines" :key="`circle-${index}`">
               <circle
@@ -230,8 +244,12 @@ const swapImage = () => {
 
 .svg-wrapper {
   position: absolute;
-  top: 0;
-  left: 0;
+  height: auto;
+  width: 100%;
+}
+
+.svg-wrapper svg {
+  width: 100%;
 }
 
 pre {
