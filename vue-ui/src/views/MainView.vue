@@ -30,6 +30,41 @@ const getCoordinates = async function (): Promise<{
   });
 };
 
+const availableLocations = [
+  {
+    name: "szczytna_widokowa",
+    label: "Szczytna Widokowa",
+    coordinates: {
+      latitude: 50.411051,
+      longitude: 16.456668,
+    },
+  },
+  {
+    name: "stokowka",
+    label: "Stokowka",
+    coordinates: {
+      latitude: 50.8325,
+      longitude: 20.4244,
+    },
+  },
+];
+
+const distancesFromLocations = computed(() =>
+  availableLocations.map((location) => {
+    const distance = Math.sqrt(
+      Math.pow(coordinates.value.latitude - location.coordinates.latitude, 2) +
+        Math.pow(
+          coordinates.value.longitude - location.coordinates.longitude,
+          2
+        )
+    );
+    return {
+      name: location.name,
+      distance,
+    };
+  })
+);
+
 const coordinates = ref({ latitude: 0, longitude: 0 });
 // TODO check if this needs to be on mounted
 onMounted(async () => {
@@ -158,13 +193,27 @@ const swapImage = () => {
       <br />
       <small>Longitude: {{ coordinates.longitude }}</small>
     </div>
+    <!-- distances from locations -->
+    <div>
+      <h2>Distances from locations</h2>
+      <ul>
+        <li v-for="distance in distancesFromLocations" :key="distance.name">
+          {{ distance.name }}: {{ distance.distance }}
+        </li>
+      </ul>
+    </div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
     <div class="file-inputs">
       <input type="file" @change="handleFileChange1" />
       <select v-model="selectedFolder">
-        <option disabled value="">Select Folder</option>
-        <option value="szczytna_widokowa">szczytna_widokowa</option>
-        <option value="stokowka">stokowka</option>
+        <option disabled value="">Select Region</option>
+        <option
+          v-for="location in availableLocations"
+          :key="location.name"
+          :value="location.name"
+        >
+          {{ location.label }}
+        </option>
       </select>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
