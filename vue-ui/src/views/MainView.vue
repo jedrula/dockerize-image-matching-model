@@ -384,7 +384,7 @@ const crags = computed(() => {
 }
 
 .images-container img {
-  height: fit-content;
+  height: intrinsic;
 }
 
 .svg-wrapper {
