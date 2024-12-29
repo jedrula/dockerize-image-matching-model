@@ -49,14 +49,40 @@ const availableLocations = [
   },
 ];
 
+// Function to calculate the distance using Haversine formula
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in kilometers
+  const toRad = Math.PI / 180; // Conversion factor from degrees to radians
+
+  // Convert degrees to radians
+  lat1 = lat1 * toRad;
+  lon1 = lon1 * toRad;
+  lat2 = lat2 * toRad;
+  lon2 = lon2 * toRad;
+
+  // Differences in coordinates
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+
+  // Haversine formula
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  // Distance in kilometers
+  const distance = R * c;
+
+  return distance; // Returns the distance in kilometers
+}
+
 const distancesFromLocations = computed(() =>
   availableLocations.map((location) => {
-    const distance = Math.sqrt(
-      Math.pow(coordinates.value.latitude - location.coordinates.latitude, 2) +
-        Math.pow(
-          coordinates.value.longitude - location.coordinates.longitude,
-          2
-        )
+    const distance = haversineDistance(
+      coordinates.value.latitude,
+      coordinates.value.longitude,
+      location.coordinates.latitude,
+      location.coordinates.longitude
     );
     return {
       name: location.name,
@@ -198,7 +224,7 @@ const swapImage = () => {
       <h2>Distances from locations</h2>
       <ul>
         <li v-for="distance in distancesFromLocations" :key="distance.name">
-          {{ distance.name }}: {{ distance.distance }}
+          {{ distance.name }}: {{ distance.distance.toFixed(2) }} km
         </li>
       </ul>
     </div>
