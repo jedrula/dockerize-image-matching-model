@@ -77,18 +77,21 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 const distancesFromLocations = computed(() =>
-  availableLocations.map((location) => {
-    const distance = haversineDistance(
-      coordinates.value.latitude,
-      coordinates.value.longitude,
-      location.coordinates.latitude,
-      location.coordinates.longitude
-    );
-    return {
-      name: location.name,
-      distance,
-    };
-  })
+  availableLocations
+    .map((location) => {
+      const distance = haversineDistance(
+        coordinates.value.latitude,
+        coordinates.value.longitude,
+        location.coordinates.latitude,
+        location.coordinates.longitude
+      );
+      return {
+        name: location.name,
+        label: location.label,
+        distance,
+      };
+    })
+    .sort((a, b) => a.distance - b.distance)
 );
 
 const coordinates = ref({ latitude: 0, longitude: 0 });
@@ -209,6 +212,10 @@ const clearLines = () => {
 const swapImage = () => {
   showImage1.value = !showImage1.value;
 };
+
+const pickLocation = (locationName) => {
+  selectedFolder.value = locationName;
+};
 </script>
 
 <template>
@@ -224,7 +231,10 @@ const swapImage = () => {
       <h2>Distances from locations</h2>
       <ul>
         <li v-for="distance in distancesFromLocations" :key="distance.name">
-          {{ distance.name }}: {{ distance.distance.toFixed(2) }} km
+          {{ distance.label }}: {{ distance.distance.toFixed(2) }} km
+          <a href="#" @click.prevent="pickLocation(distance.name)"
+            >Pick this location</a
+          >
         </li>
       </ul>
     </div>
