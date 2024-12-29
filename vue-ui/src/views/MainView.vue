@@ -1,6 +1,44 @@
 <script setup lang="ts">
-import { ref, nextTick, computed } from "vue";
+import { ref, nextTick, computed, onMounted } from "vue";
 import { findMatchingMatrix, apiUrl } from "@/api/api";
+
+const getCoordinates = async function (): Promise<{
+  latitude: number;
+  longitude: number;
+}> {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      console.log("Geolocation is supported by this browser.");
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("Latitude: " + position.coords.latitude);
+          console.log("Longitude: " + position.coords.longitude);
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting coordinates: ", error);
+          reject(error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+      reject("Geolocation is not supported by this browser.");
+    }
+  });
+};
+
+const coordinates = ref({ latitude: 0, longitude: 0 });
+// TODO check if this needs to be on mounted
+onMounted(async () => {
+  try {
+    coordinates.value = await getCoordinates();
+  } catch (error) {
+    console.error("Error getting coordinates: ", error);
+  }
+});
 
 const matchingMatrixResult = ref(null);
 const errorMessage = ref("");
@@ -9,7 +47,7 @@ const image2 = ref(null);
 const file1 = ref<File | null>(null);
 const selectedFolder = ref("");
 const image1Url = ref("");
-const isMobile = ref(true);
+const isMobile = ref(false);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 const showImage2 = computed(() => !isMobile.value || !showImage1.value);
 
@@ -115,6 +153,11 @@ const swapImage = () => {
 <template>
   <div class="matching-matrix">
     <h1>Find Match</h1>
+    <div>
+      <small>Latitude: {{ coordinates.latitude }}</small>
+      <br />
+      <small>Longitude: {{ coordinates.longitude }}</small>
+    </div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
     <div class="file-inputs">
       <input type="file" @change="handleFileChange1" />
