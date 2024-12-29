@@ -216,6 +216,10 @@ const swapImage = () => {
 const pickLocation = (locationName) => {
   selectedFolder.value = locationName;
 };
+
+const crags = computed(() => {
+  return matchingMatrixResult.value?.best_match_json_content?.crags || [];
+});
 </script>
 
 <template>
@@ -351,6 +355,15 @@ const pickLocation = (locationName) => {
     >
       Toggle View
     </button>
+    <div v-if="crags.length">
+      <h2>Crags</h2>
+      <ul>
+        <li v-for="crag in crags" :key="crag.line">
+          {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
+          {{ crag.expressCount }})
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 

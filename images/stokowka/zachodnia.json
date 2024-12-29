@@ -1,0 +1,64 @@
+{
+  "crags": [
+    {
+      "line": 23,
+      "name": "Dynacem",
+      "grade": "V+",
+      "expressCount": 6
+    },
+    {
+      "line": 24,
+      "name": "Życie we mgle",
+      "grade": "VI.1",
+      "expressCount": 5
+    },
+    {
+      "line": 25,
+      "name": "Młoda krew",
+      "grade": "VI ***",
+      "expressCount": 5
+    },
+    {
+      "line": 26,
+      "name": "Painkiller",
+      "grade": "VI.2+",
+      "expressCount": 4
+    },
+    {
+      "line": 27,
+      "name": "Posadzka na hohonia",
+      "grade": "VI.1+ ***",
+      "expressCount": 5
+    },
+    {
+      "line": 28,
+      "name": "Konie idą na lewo",
+      "grade": "VI.1 ***",
+      "expressCount": 3
+    },
+    {
+      "line": 29,
+      "name": "Elwlis",
+      "grade": "VI ***",
+      "expressCount": 5
+    },
+    {
+      "line": 30,
+      "name": "Poznańskie dziewczęta",
+      "grade": "VI+ ***",
+      "expressCount": 5
+    },
+    {
+      "line": 31,
+      "name": "Atak wiewiórek",
+      "grade": "VI+",
+      "expressCount": 5
+    },
+    {
+      "line": 32,
+      "name": "Motyla noga",
+      "grade": "VI.1***",
+      "expressCount": 5
+    }
+  ]
+}

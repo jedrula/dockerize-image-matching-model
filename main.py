@@ -1,5 +1,6 @@
 from enum import Enum
 import cv2
+import json
 import os
 import numpy as np
 import torch
@@ -164,6 +165,15 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       best_matched_points = matched_points
       best_tensor_match = tensor2
 
+
+  # Replace the extension with .json in a smart way
+  base, _ = os.path.splitext(best_match)
+  best_match_json_path = f"{base}.json"
+  try:
+    best_match_json_content = json.load(open(best_match_json_path))
+  except FileNotFoundError:
+    best_match_json_content = None
+
   return {
     "matched_points": [
       {
@@ -180,7 +190,8 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       "width": int(best_tensor_match['w']),
       "height": int(best_tensor_match['h']),
       "path": best_match
-    }
+    },
+    "best_match_json_content": best_match_json_content
   }
 
 
