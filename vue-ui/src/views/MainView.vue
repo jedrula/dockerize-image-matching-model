@@ -357,12 +357,12 @@ const crags = computed(() => {
     </button>
     <div v-if="crags.length">
       <h2>Crags</h2>
-      <ul>
+      <ol :start="crags[0].line ?? 0">
         <li v-for="crag in crags" :key="crag.line">
           {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
           {{ crag.expressCount }})
         </li>
-      </ul>
+      </ol>
     </div>
   </div>
 </template>
