@@ -261,7 +261,7 @@ const crags = computed(() => {
       </div>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
-    <div v-if="loading">Loading...</div>
+    <div v-if="loading" class="spinner" style="margin: 10px auto" />
     <div v-if="matchingMatrixResult">
       <h2 v-if="matchingMatrixResult?.best_match_json_content.name">
         {{ matchingMatrixResult.best_match_json_content.name }}
@@ -432,5 +432,20 @@ circle {
 
 circle.shown {
   opacity: 1;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #000;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
