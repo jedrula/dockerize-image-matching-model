@@ -95,6 +95,7 @@ const distancesFromLocations = computed(() =>
 );
 
 const coordinates = ref({ latitude: 0, longitude: 0 });
+const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
 // TODO check if this needs to be on mounted
 onMounted(async () => {
   try {
@@ -224,13 +225,12 @@ const crags = computed(() => {
 
 <template>
   <div class="matching-matrix">
-    <h1>Find Match</h1>
-    <div>
-      <small>Latitude: {{ coordinates.latitude }}</small>
-      <br />
-      <small>Longitude: {{ coordinates.longitude }}</small>
+    <div style="position: fixed; top: 0; right: 0; padding: 10px">
+      <small
+        >{{ coordinates.latitude.toFixed(2) }}
+        {{ coordinates.longitude.toFixed(2) }}</small
+      >
     </div>
-    <!-- distances from locations -->
     <div>
       <h2>Distances from locations</h2>
       <ul>
@@ -248,11 +248,14 @@ const crags = computed(() => {
       <select v-model="selectedFolder">
         <option disabled value="">Select Region</option>
         <option
-          v-for="location in availableLocations"
+          v-for="location in distancesFromLocations.length
+            ? distancesFromLocations
+            : availableLocations"
           :key="location.name"
           :value="location.name"
         >
           {{ location.label }}
+          {{ hasCoordinates ? `(${location.distance.toFixed(2)} km)` : "" }}
         </option>
       </select>
       <button @click="uploadFileAndFolder">Submit</button>
