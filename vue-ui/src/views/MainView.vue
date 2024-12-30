@@ -231,33 +231,34 @@ const crags = computed(() => {
         {{ coordinates.longitude.toFixed(2) }}</small
       >
     </div>
-    <div>
-      <h2>Distances from locations</h2>
-      <ul>
-        <li v-for="distance in distancesFromLocations" :key="distance.name">
-          {{ distance.label }}: {{ distance.distance.toFixed(2) }} km
-          <a href="#" @click.prevent="pickLocation(distance.name)"
-            >Pick this location</a
-          >
-        </li>
-      </ul>
-    </div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
-    <div class="file-inputs">
+    <div class="matching-form">
       <input type="file" @change="handleFileChange1" />
-      <select v-model="selectedFolder">
-        <option disabled value="">Select Region</option>
-        <option
-          v-for="location in distancesFromLocations.length
-            ? distancesFromLocations
-            : availableLocations"
-          :key="location.name"
-          :value="location.name"
-        >
-          {{ location.label }}
-          {{ hasCoordinates ? `(${location.distance.toFixed(2)} km)` : "" }}
-        </option>
-      </select>
+      <div style="display: flex; align-items: center; gap: 5px">
+        <select v-model="selectedFolder">
+          <option disabled value="">Select Region</option>
+          <option
+            v-for="location in distancesFromLocations.length
+              ? distancesFromLocations
+              : availableLocations"
+            :key="location.name"
+            :value="location.name"
+          >
+            {{ location.label }}
+            {{ hasCoordinates ? `(${location.distance.toFixed(2)} km)` : "" }}
+          </option>
+        </select>
+        <div v-if="!selectedFolder && hasCoordinates">
+          <small>
+            <a
+              href="#"
+              @click.prevent="selectedFolder = distancesFromLocations[0].name"
+            >
+              Use closest location: {{ distancesFromLocations[0].label }}
+            </a>
+          </small>
+        </div>
+      </div>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
     <div
@@ -377,8 +378,11 @@ const crags = computed(() => {
   border-radius: 5px;
 }
 
-.file-inputs {
+.matching-form {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
+  gap: 10px;
 }
 
 .images-container {
