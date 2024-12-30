@@ -106,6 +106,7 @@ onMounted(async () => {
 });
 
 const matchingMatrixResult = ref(null);
+const loading = ref(false);
 const errorMessage = ref("");
 const image1 = ref(null);
 const image2 = ref(null);
@@ -131,6 +132,7 @@ const uploadFileAndFolder = async () => {
   }
 
   try {
+    loading.value = true;
     matchingMatrixResult.value = await findMatchingMatrix(
       file1.value,
       selectedFolder.value,
@@ -141,6 +143,8 @@ const uploadFileAndFolder = async () => {
     errorMessage.value =
       "An error occurred while uploading the file and folder.";
     console.error(error);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -214,10 +218,6 @@ const swapImage = () => {
   showImage1.value = !showImage1.value;
 };
 
-const pickLocation = (locationName) => {
-  selectedFolder.value = locationName;
-};
-
 const crags = computed(() => {
   return matchingMatrixResult.value?.best_match_json_content?.crags || [];
 });
@@ -232,7 +232,7 @@ const crags = computed(() => {
       >
     </div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
-    <div class="matching-form">
+    <div v-if="!matchingMatrixResult" class="matching-form">
       <input type="file" @change="handleFileChange1" />
       <div style="display: flex; align-items: center; gap: 5px">
         <select v-model="selectedFolder">
@@ -261,119 +261,130 @@ const crags = computed(() => {
       </div>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
-    <div
-      class="images-container"
-      :style="{
-        width: `${svgWidth}px`,
-        maxWidth: `min(100%, ${svgWidth}px)`,
-      }"
-    >
-      <img
-        v-if="image1Url && (!isMobile || showImage1)"
-        ref="image1"
-        :width="`${firstImageWidthPercentage}%`"
-        :src="image1Url"
-        alt="image 1"
-      />
-      <img
-        v-if="matchingMatrixResult?.image2 && showImage2"
-        ref="image2"
-        :width="`${secondImageWidthPercentage}%`"
-        :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
-        alt="image 2"
-      />
-      <div class="svg-wrapper">
-        <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
-          <template v-if="svgWidth && svgHeight">
-            <template v-for="(line, index) in lines" :key="`circle-${index}`">
-              <circle
-                v-if="!isMobile || showImage1"
-                :cx="line.x1"
-                :cy="line.y1"
-                :r="line.show.value ? 9 : 6"
-                :stroke="line.show.value ? 'green' : 'black'"
-                stroke-width="2"
-                :fill="line.show.value ? 'green' : 'white'"
-                :fill-opacity="line.show.value ? 1 : 0.5"
-                @click="circleClicked(line)"
-                @mouseover="line.hovered.value = true"
-                @mouseleave="line.hovered.value = false"
-                :class="{ shown: line.show.value }"
-              />
-              <circle
-                v-if="!isMobile || !showImage1"
-                :cx="
-                  showImage1
-                    ? line.x2 + matchingMatrixResult.image1.width
-                    : line.x2
-                "
-                :cy="line.y2"
-                :r="line.show.value ? 9 : 6"
-                :stroke="line.show.value ? 'green' : 'black'"
-                stroke-width="2"
-                :fill="line.show.value ? 'green' : 'white'"
-                :fill-opacity="line.show.value ? 1 : 0.5"
-                @click="circleClicked(line)"
-                @mouseover="line.hovered.value = true"
-                @mouseleave="line.hovered.value = false"
-                :class="{ shown: line.show.value }"
-              />
+    <div v-if="loading">Loading...</div>
+    <div v-if="matchingMatrixResult">
+      <h2 v-if="matchingMatrixResult?.best_match_json_content.name">
+        {{ matchingMatrixResult.best_match_json_content.name }}
+      </h2>
+      <div
+        class="images-container"
+        :style="{
+          width: `${svgWidth}px`,
+          maxWidth: `min(100%, ${svgWidth}px)`,
+        }"
+      >
+        <img
+          v-if="image1Url && (!isMobile || showImage1)"
+          ref="image1"
+          :width="`${firstImageWidthPercentage}%`"
+          :src="image1Url"
+          alt="image 1"
+        />
+        <img
+          v-if="matchingMatrixResult?.image2 && showImage2"
+          ref="image2"
+          :width="`${secondImageWidthPercentage}%`"
+          :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
+          alt="image 2"
+        />
+        <div class="svg-wrapper">
+          <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
+            <template v-if="svgWidth && svgHeight">
+              <template v-for="(line, index) in lines" :key="`circle-${index}`">
+                <circle
+                  v-if="!isMobile || showImage1"
+                  :cx="line.x1"
+                  :cy="line.y1"
+                  :r="line.show.value ? 9 : 6"
+                  :stroke="line.show.value ? 'green' : 'black'"
+                  stroke-width="2"
+                  :fill="line.show.value ? 'green' : 'white'"
+                  :fill-opacity="line.show.value ? 1 : 0.5"
+                  @click="circleClicked(line)"
+                  @mouseover="line.hovered.value = true"
+                  @mouseleave="line.hovered.value = false"
+                  :class="{ shown: line.show.value }"
+                />
+                <circle
+                  v-if="!isMobile || !showImage1"
+                  :cx="
+                    showImage1
+                      ? line.x2 + matchingMatrixResult.image1.width
+                      : line.x2
+                  "
+                  :cy="line.y2"
+                  :r="line.show.value ? 9 : 6"
+                  :stroke="line.show.value ? 'green' : 'black'"
+                  stroke-width="2"
+                  :fill="line.show.value ? 'green' : 'white'"
+                  :fill-opacity="line.show.value ? 1 : 0.5"
+                  @click="circleClicked(line)"
+                  @mouseover="line.hovered.value = true"
+                  @mouseleave="line.hovered.value = false"
+                  :class="{ shown: line.show.value }"
+                />
+              </template>
+              <template v-if="!isMobile">
+                <line
+                  v-for="(line, index) in shownLines"
+                  :key="`line-${index}`"
+                  :x1="line.x1"
+                  :y1="line.y1"
+                  :x2="line.x2 + matchingMatrixResult.image1.width"
+                  :y2="line.y2"
+                  stroke="green"
+                  stroke-width="3"
+                  @mouseover="line.hovered.value = true"
+                  @mouseleave="line.hovered.value = false"
+                />
+              </template>
             </template>
-            <template v-if="!isMobile">
-              <line
-                v-for="(line, index) in shownLines"
-                :key="`line-${index}`"
-                :x1="line.x1"
-                :y1="line.y1"
-                :x2="line.x2 + matchingMatrixResult.image1.width"
-                :y2="line.y2"
-                stroke="green"
-                stroke-width="3"
-                @mouseover="line.hovered.value = true"
-                @mouseleave="line.hovered.value = false"
-              />
-            </template>
-          </template>
-        </svg>
+          </svg>
+        </div>
       </div>
-    </div>
-    <button
-      @click="clearLines"
-      :disabled="!pickedLines.length"
-      style="margin-top: 20px"
-    >
-      Clear {{ isMobile ? "Dots" : "Lines" }}
-    </button>
-    <button
-      v-if="isMobile"
-      @click="swapImage"
-      style="margin-top: 20px; margin-left: 10px"
-      :disabled="!matchingMatrixResult"
-    >
-      Swap Image
-    </button>
-    <button
-      @click="isMobile = !isMobile"
-      style="margin-top: 20px; margin-left: 10px"
-      :disabled="!matchingMatrixResult"
-    >
-      Toggle View
-    </button>
-    <div v-if="crags.length">
-      <h2>Crags</h2>
-      <ol :start="crags[0].line ?? 0">
-        <li v-for="crag in crags" :key="crag.line">
-          {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
-          {{ crag.expressCount }})
-        </li>
-      </ol>
+      <button
+        @click="clearLines"
+        :disabled="!pickedLines.length"
+        style="margin-top: 20px"
+      >
+        Clear {{ isMobile ? "Dots" : "Lines" }}
+      </button>
+      <button
+        v-if="isMobile"
+        @click="swapImage"
+        style="margin-top: 20px; margin-left: 10px"
+        :disabled="!matchingMatrixResult"
+      >
+        Swap Image
+      </button>
+      <button
+        @click="isMobile = !isMobile"
+        style="margin-top: 20px; margin-left: 10px"
+        :disabled="!matchingMatrixResult"
+      >
+        Toggle View
+      </button>
+      <div v-if="crags.length">
+        <h2>Crags</h2>
+        <ol :start="crags[0].line ?? 0">
+          <li v-for="crag in crags" :key="crag.line">
+            {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
+            {{ crag.expressCount }})
+          </li>
+        </ol>
+      </div>
+      <a
+        href="#"
+        @click="matchingMatrixResult = null"
+        style="display: block; text-align: center; color: red; margin-top: 10px"
+        >Start Over</a
+      >
     </div>
   </div>
 </template>
 
 <style scoped>
 .matching-matrix {
-  padding: 20px;
   background-color: #fff;
   border-radius: 5px;
 }

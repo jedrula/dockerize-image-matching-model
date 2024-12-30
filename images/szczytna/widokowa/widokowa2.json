@@ -1,0 +1,59 @@
+{
+  "name": "Widokowa II",
+  "crags": [
+    {
+      "line": 1,
+      "name": "Niech będzie pochwalony",
+      "grade": "VI+",
+      "expressCount": 11,
+      "author": "E. Mikulski, M. Tyszowski",
+      "year": 1987,
+      "length": 32
+    },
+    {
+      "line": 2,
+      "name": "Na wieki wieków",
+      "grade": "VI.1+",
+      "expressCount": 13,
+      "author": "M. Freus, M. Chlebowski",
+      "year": 2008,
+      "length": 32
+    },
+    {
+      "line": 3,
+      "name": "Drops róży",
+      "grade": "VI.2/2+",
+      "expressCount": 14,
+      "author": "M. Harendarz",
+      "year": 2015,
+      "length": 32
+    },
+    {
+      "line": 4,
+      "name": "Wież tektoniki",
+      "grade": "VI.1+",
+      "expressCount": 12,
+      "author": "M. Harendarz, A. Szyld",
+      "year": 2015,
+      "length": 32
+    },
+    {
+      "line": 4.1,
+      "name": "Skręt kiszek",
+      "grade": "VI.5",
+      "expressCount": 13,
+      "author": "T. Kazimierski",
+      "year": 2017,
+      "length": 32
+    },
+    {
+      "line": 5,
+      "name": "Wielka załupa",
+      "grade": "IV",
+      "expressCount": 0,
+      "author": "E. Mikulski, M. Tyszowski",
+      "year": 1986,
+      "length": 29
+    }
+  ]
+}
