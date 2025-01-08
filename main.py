@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum
 import cv2
 import json
@@ -153,18 +154,21 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
   best_matched_points = None
   best_tensor_match = None
 
+  tasks = []
   for img in compare_images:
     tensor2 = get_tensor_image(open(img, "rb").read())
     img2 = tensor2['img']
-    matched_points = await getMatchingMatrix(img1, img2)
-    score = len(matched_points)
+    tasks.append(getMatchingMatrix(img1, img2))
 
+  results = await asyncio.gather(*tasks)
+
+  for img, matched_points in zip(compare_images, results):
+    score = len(matched_points)
     if score > best_score:
       best_score = score
       best_match = img
       best_matched_points = matched_points
-      best_tensor_match = tensor2
-
+      best_tensor_match = get_tensor_image(open(img, "rb").read())
 
   # Replace the extension with .json in a smart way
   base, _ = os.path.splitext(best_match)
