@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 import cv2
 import json
@@ -157,14 +158,54 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
   best_matched_points = None
   best_tensor_match = None
 
-  tasks = []
-  for img in compare_images:
+  def process_image(img):
     tensor2 = get_tensor_image(open(img, "rb").read())
     img2 = tensor2['img']
-    tasks.append(getMatchingMatrix(img1, img2))
-  print(f"Prepared tasks for matching in {time.time() - start_time:.2f} seconds")
+    matched_points = asyncio.run(getMatchingMatrix(img1, img2))
+    return img, matched_points
 
-  results = await asyncio.gather(*tasks)
+  with ThreadPoolExecutor() as executor:
+    results = list(executor.map(process_image, compare_images))
+
+  print(f"Completed matching tasks in {time.time() - start_time:.2f} seconds")
+
+  for img, matched_points in results:
+    score = len(matched_points)
+    if score > best_score:
+      best_score = score
+      best_match = img
+      best_matched_points = matched_points
+      best_tensor_match = get_tensor_image(open(img, "rb").read())
+  print(f"Found best match in {time.time() - start_time:.2f} seconds")
+
+  # Replace the extension with .json in a smart way
+  base, _ = os.path.splitext(best_match)
+  best_match_json_path = f"{base}.json"
+  try:
+    best_match_json_content = json.load(open(best_match_json_path))
+  except FileNotFoundError:
+    best_match_json_content = None
+  print(f"Loaded best match JSON content in {time.time() - start_time:.2f} seconds")
+
+  return {
+    "matched_points": [
+      {
+        "point1": {"x": float(pt["point1"]["x"]), "y": float(pt["point1"]["y"])},
+        "point2": {"x": float(pt["point2"]["x"]), "y": float(pt["point2"]["y"])}
+      }
+      for pt in best_matched_points
+    ],
+    "image1": {
+      "width": int(tensor1['w']),
+      "height": int(tensor1['h']),
+    },
+    "image2": {
+      "width": int(best_tensor_match['w']),
+      "height": int(best_tensor_match['h']),
+      "path": best_match
+    },
+    "best_match_json_content": best_match_json_content
+  }
   print(f"Completed matching tasks in {time.time() - start_time:.2f} seconds")
 
   for img, matched_points in zip(compare_images, results):
