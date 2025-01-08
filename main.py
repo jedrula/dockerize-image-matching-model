@@ -12,6 +12,7 @@ from kornia_moons.viz import draw_LAF_matches
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+import time
 
 #setting up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -145,9 +146,11 @@ async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile
 
 @app.post("/find_matching_matrix")
 async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = File(...)):
+  start_time = time.time()
   tensor1 = get_tensor_image(await image1.read())
   img1 = tensor1['img']
   compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  print(f"Loaded and processed input image in {time.time() - start_time:.2f} seconds")
 
   best_match = None
   best_score = -1
@@ -159,8 +162,10 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
     tensor2 = get_tensor_image(open(img, "rb").read())
     img2 = tensor2['img']
     tasks.append(getMatchingMatrix(img1, img2))
+  print(f"Prepared tasks for matching in {time.time() - start_time:.2f} seconds")
 
   results = await asyncio.gather(*tasks)
+  print(f"Completed matching tasks in {time.time() - start_time:.2f} seconds")
 
   for img, matched_points in zip(compare_images, results):
     score = len(matched_points)
@@ -169,6 +174,7 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       best_match = img
       best_matched_points = matched_points
       best_tensor_match = get_tensor_image(open(img, "rb").read())
+  print(f"Found best match in {time.time() - start_time:.2f} seconds")
 
   # Replace the extension with .json in a smart way
   base, _ = os.path.splitext(best_match)
@@ -177,6 +183,7 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
     best_match_json_content = json.load(open(best_match_json_path))
   except FileNotFoundError:
     best_match_json_content = None
+  print(f"Loaded best match JSON content in {time.time() - start_time:.2f} seconds")
 
   return {
     "matched_points": [
