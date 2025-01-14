@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
-    "deploy": "vite build && surge dist --domain https://topomatch.surge.sh",
+    "deploy": "VITE_API_BASE_URL=https://51be-67-86-5-183.ngrok-free.app  vite build && surge dist --domain https://topomatch.surge.sh",
     "test:unit": "vitest",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
