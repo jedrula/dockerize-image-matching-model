@@ -402,6 +402,7 @@ const crags = computed(() => {
 }
 
 .images-container img {
+  height: max-content;
   height: intrinsic;
 }
 
