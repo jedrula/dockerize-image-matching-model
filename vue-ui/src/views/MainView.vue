@@ -116,6 +116,7 @@ const image1Url = ref("");
 const isMobile = ref(false);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 const showImage2 = computed(() => !isMobile.value || !showImage1.value);
+const showIdentifiedMatchingPoints = ref(true);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -290,39 +291,44 @@ const crags = computed(() => {
         <div class="svg-wrapper">
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
-              <template v-for="(line, index) in lines" :key="`circle-${index}`">
-                <circle
-                  v-if="!isMobile || showImage1"
-                  :cx="line.x1"
-                  :cy="line.y1"
-                  :r="line.show.value ? 9 : 6"
-                  :stroke="line.show.value ? 'green' : 'black'"
-                  stroke-width="2"
-                  :fill="line.show.value ? 'green' : 'white'"
-                  :fill-opacity="line.show.value ? 1 : 0.5"
-                  @click="circleClicked(line)"
-                  @mouseover="line.hovered.value = true"
-                  @mouseleave="line.hovered.value = false"
-                  :class="{ shown: line.show.value }"
-                />
-                <circle
-                  v-if="!isMobile || !showImage1"
-                  :cx="
-                    showImage1
-                      ? line.x2 + matchingMatrixResult.image1.width
-                      : line.x2
-                  "
-                  :cy="line.y2"
-                  :r="line.show.value ? 9 : 6"
-                  :stroke="line.show.value ? 'green' : 'black'"
-                  stroke-width="2"
-                  :fill="line.show.value ? 'green' : 'white'"
-                  :fill-opacity="line.show.value ? 1 : 0.5"
-                  @click="circleClicked(line)"
-                  @mouseover="line.hovered.value = true"
-                  @mouseleave="line.hovered.value = false"
-                  :class="{ shown: line.show.value }"
-                />
+              <template v-if="showIdentifiedMatchingPoints">
+                <template
+                  v-for="(line, index) in lines"
+                  :key="`circle-${index}`"
+                >
+                  <circle
+                    v-if="!isMobile || showImage1"
+                    :cx="line.x1"
+                    :cy="line.y1"
+                    :r="line.show.value ? 9 : 6"
+                    :stroke="line.show.value ? 'green' : 'black'"
+                    stroke-width="2"
+                    :fill="line.show.value ? 'green' : 'white'"
+                    :fill-opacity="line.show.value ? 1 : 0.5"
+                    @click="circleClicked(line)"
+                    @mouseover="line.hovered.value = true"
+                    @mouseleave="line.hovered.value = false"
+                    :class="{ shown: line.show.value }"
+                  />
+                  <circle
+                    v-if="!isMobile || !showImage1"
+                    :cx="
+                      showImage1
+                        ? line.x2 + matchingMatrixResult.image1.width
+                        : line.x2
+                    "
+                    :cy="line.y2"
+                    :r="line.show.value ? 9 : 6"
+                    :stroke="line.show.value ? 'green' : 'black'"
+                    stroke-width="2"
+                    :fill="line.show.value ? 'green' : 'white'"
+                    :fill-opacity="line.show.value ? 1 : 0.5"
+                    @click="circleClicked(line)"
+                    @mouseover="line.hovered.value = true"
+                    @mouseleave="line.hovered.value = false"
+                    :class="{ shown: line.show.value }"
+                  />
+                </template>
               </template>
               <template v-if="!isMobile">
                 <line
@@ -343,9 +349,15 @@ const crags = computed(() => {
         </div>
       </div>
       <button
+        @click="showIdentifiedMatchingPoints = !showIdentifiedMatchingPoints"
+        style="margin-top: 20px"
+      >
+        Toggle Matching Points
+      </button>
+      <button
         @click="clearLines"
         :disabled="!pickedLines.length"
-        style="margin-top: 20px"
+        style="margin-top: 20px; margin-left: 10px"
       >
         Clear {{ isMobile ? "Dots" : "Lines" }}
       </button>
