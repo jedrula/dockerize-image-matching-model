@@ -14386,3 +14386,47 @@ window.mockres = {
     ],
   },
 };
+
+window.points1 = window.mockres.matched_points.reduce((acc, { point1 }) => {
+  acc.push(point1.x, point1.y);
+  return acc;
+}, []);
+
+window.points2 = window.mockres.matched_points.reduce((acc, { point2 }) => {
+  acc.push(point2.x, point2.y);
+  return acc;
+}, []);
+
+window.points1 = window.points1.map((point) => parseInt(point));
+window.points2 = window.points2.map((point) => parseInt(point));
+
+// the above does not give good results for the code below, the format is good but maybe i am collecting too many points ? maybe i should focus on some specific points ?
+
+// const points1 = window.points1; // [100, 150, 200, 250, 300, 350, 400, 450];
+
+// const points2 = window.points2; // [110, 160, 210, 260, 310, 360, 410, 460];
+
+// console.log("points1:", points1);
+
+// const mat1 = new cv.Mat(points1.length, 1, cv.CV_32FC2);
+// mat1.data32F.set(points1);
+// const mat2 = new cv.Mat(points2.length, 1, cv.CV_32FC2);
+// mat2.data32F.set(points2);
+
+// const h = cv.findHomography(mat1, mat2, cv.RANSAC);
+
+// if (h.empty()) {
+//   alert("homography matrix empty!");
+// } else {
+//   console.log("h:", h);
+//   console.log("[", h.data64F[0], ",", h.data64F[1], ",", h.data64F[2]);
+//   console.log("", h.data64F[3], ",", h.data64F[4], ",", h.data64F[5]);
+//   console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
+// }
+
+// const point = [295.5, 479.1891784667969];
+// const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
+// const match = new cv.Mat();
+// cv.perspectiveTransform(pointMat, match, h);
+// // pointMat.delete();
+// console.log("match:", match.data32F[0], match.data32F[1]);

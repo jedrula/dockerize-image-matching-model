@@ -49,9 +49,11 @@ const availableLocations = [
   },
 ];
 
-const points1 = [100, 150, 200, 250, 300, 350, 400, 450];
+const points1 = window.points1; // [100, 150, 200, 250, 300, 350, 400, 450];
 
-const points2 = [110, 160, 210, 260, 310, 360, 410, 460];
+const points2 = window.points2; // [110, 160, 210, 260, 310, 360, 410, 460];
+
+console.log("points1:", points1);
 
 const mat1 = new cv.Mat(points1.length, 1, cv.CV_32FC2);
 mat1.data32F.set(points1);
@@ -72,11 +74,22 @@ if (h.empty()) {
   console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
 }
 
-const point = [102, 152];
+const point = [295.5, 479.1891784667969];
+// taken from
+// {
+//       point1: {
+//         x: 295.5,
+//         y: 479.1891784667969,
+//       },
+//       point2: {
+//         x: 417.63714599609375,
+//         y: 442.4508056640625,
+//       },
+//     },
 const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
 const match = new cv.Mat();
 cv.perspectiveTransform(pointMat, match, h);
-pointMat.delete();
+// pointMat.delete();
 console.log("match:", match.data32F[0], match.data32F[1]);
 
 // Function to calculate the distance using Haversine formula
