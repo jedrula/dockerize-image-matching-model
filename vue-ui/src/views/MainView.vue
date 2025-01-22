@@ -49,6 +49,29 @@ const availableLocations = [
   },
 ];
 
+const points1 = [100, 150, 200, 250, 300, 350, 400, 450];
+
+const points2 = [110, 160, 210, 260, 310, 360, 410, 460];
+
+const mat1 = new cv.Mat(points1.length, 1, cv.CV_32FC2);
+mat1.data32F.set(points1);
+const mat2 = new cv.Mat(points2.length, 1, cv.CV_32FC2);
+mat2.data32F.set(points2);
+
+// getMatStats(mat1, "mat1 prior to homography");
+// getMatStats(mat2, "mat2 prior to homography");
+
+const h = cv.findHomography(mat1, mat2, cv.RANSAC);
+
+if (h.empty()) {
+  alert("homography matrix empty!");
+} else {
+  console.log("h:", h);
+  console.log("[", h.data64F[0], ",", h.data64F[1], ",", h.data64F[2]);
+  console.log("", h.data64F[3], ",", h.data64F[4], ",", h.data64F[5]);
+  console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
+}
+
 // Function to calculate the distance using Haversine formula
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the Earth in kilometers
