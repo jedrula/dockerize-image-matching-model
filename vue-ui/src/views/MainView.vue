@@ -74,7 +74,19 @@ if (h.empty()) {
   console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
 }
 
-const point = [295.5, 479.1891784667969];
+function logMatch(point) {
+  const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
+  const match = new cv.Mat();
+  cv.perspectiveTransform(pointMat, match, h);
+  pointMat.delete();
+  console.log("match:", match.data32F[0], match.data32F[1]);
+}
+
+window.mockres.matched_points.forEach((point) => {
+  console.log("logging match, expected: ", point.point2.x, point.point2.y);
+  logMatch([parseInt(point.point1.x, 10), parseInt(point.point1.y, 10)]);
+});
+
 // taken from
 // {
 //       point1: {
@@ -86,11 +98,6 @@ const point = [295.5, 479.1891784667969];
 //         y: 442.4508056640625,
 //       },
 //     },
-const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
-const match = new cv.Mat();
-cv.perspectiveTransform(pointMat, match, h);
-// pointMat.delete();
-console.log("match:", match.data32F[0], match.data32F[1]);
 
 // Function to calculate the distance using Haversine formula
 function haversineDistance(lat1, lon1, lat2, lon2) {
