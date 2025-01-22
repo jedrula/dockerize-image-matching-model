@@ -72,6 +72,13 @@ if (h.empty()) {
   console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
 }
 
+const point = [102, 152];
+const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
+const match = new cv.Mat();
+cv.perspectiveTransform(pointMat, match, h);
+pointMat.delete();
+console.log("match:", match.data32F[0], match.data32F[1]);
+
 // Function to calculate the distance using Haversine formula
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the Earth in kilometers
