@@ -36,15 +36,17 @@ H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
 print(inliers)
 print(H)
 
-# Calculate the match for the point (295.5, 479.1891784667969)
-point = np.array([[295.5, 479.1891784667969]], dtype='float32')
-point = np.array([point])
-
-# Transform the point using the homography matrix
-transformed_point = cv2.perspectiveTransform(point, H)
-
-print("Original point:", point)
-print("Transformed point:", transformed_point)
+# Iterate over all points from mkpts0
+for i, point in enumerate(mkpts0):
+    # Transform the point using the homography matrix
+    point = np.array([[point]], dtype='float32')
+    transformed_point = cv2.perspectiveTransform(point, H)
+    
+    # Print the transformed point and the corresponding point from mkpts1
+    print(f"Original point: {point[0][0]}")
+    print(f"Transformed point: {transformed_point[0][0]}")
+    print(f"Expected point: {mkpts1[i]}")
+    print()
 
 # to run this program on a mac: python3 homeography-poc.py
 # to install requirements: pip3 install opencv-python --break-system-packages
