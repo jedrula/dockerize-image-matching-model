@@ -29,6 +29,13 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
+# this could help with warping
+# https://huggingface.co/spaces/Realcat/image-matching-webui
+# https://github.com/Vincentqyw/image-matching-webui
+
+# this has some basic code, maybe useful: https://learnopencv.com/homography-examples-using-opencv-python-c/
+# https://github.com/Eric-Canas/Homography.js - this might be awesome - it's on the frontend!
+
 #Load model
 matcher = KF.LoFTR(pretrained=None)
 matcher.load_state_dict(torch.load("./models/loftr_outdoor.ckpt")['state_dict'])
@@ -165,6 +172,12 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       best_matched_points = matched_points
       best_tensor_match = tensor2
 
+  # Calculate homography matrix
+  mkpts0 = np.array([[pt["point1"]["x"], pt["point1"]["y"]] for pt in best_matched_points])
+  mkpts1 = np.array([[pt["point2"]["x"], pt["point2"]["y"]] for pt in best_matched_points])
+  H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
+
+  homography_matrix = H.flatten().tolist()
 
   # Replace the extension with .json in a smart way
   base, _ = os.path.splitext(best_match)
@@ -191,7 +204,8 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       "height": int(best_tensor_match['h']),
       "path": best_match
     },
-    "best_match_json_content": best_match_json_content
+    "best_match_json_content": best_match_json_content,
+    "homography_matrix": homography_matrix
   }
 
 
@@ -264,3 +278,27 @@ async def get_test_user_image(rest_of_path: str):
 @app.get("/ui")
 async def get_ui():
   return FileResponse("./ui/index.html", media_type="text/html")
+
+# @app.post("/warp_image")
+# async def warp_image(image1: UploadFile = File(...), image2: UploadFile = File(...)):
+#   img1 = get_tensor_image(await image1.read())['img']
+#   img2 = get_tensor_image(await image2.read())['img']
+
+#   input_dict = {"image0": K.color.rgb_to_grayscale(img1),
+#           "image1": K.color.rgb_to_grayscale(img2)}
+
+#   with torch.no_grad():
+#     correspondences = matcher(input_dict)
+
+#   mkpts0 = correspondences['keypoints0'].cpu().numpy()
+#   mkpts1 = correspondences['keypoints1'].cpu().numpy()
+#   H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
+#   inliers = (inliers > 0).flatten()
+
+#   img1_np = K.tensor_to_image(img1)
+#   warped_img = cv2.warpPerspective(img1_np, H, (img2.shape[3], img2.shape[2]))
+
+#   warped_img_path = 'warped_output.jpg'
+#   cv2.imwrite(warped_img_path, warped_img)
+
+#   return FileResponse(warped_img_path, media_type="image/jpeg")

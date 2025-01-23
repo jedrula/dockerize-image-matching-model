@@ -71,9 +71,14 @@ const h = cv.matFromArray(
   3,
   3,
   cv.CV_32F,
+  // [
+  //   0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
+  //   -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
+  // ]
   [
-    0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
-    -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
+    0.8258637298128778, -0.17502809343937742, 171.27939726107894,
+    0.005538102619544139, 0.8325245262201597, -55.11961990407601,
+    0.00012886671557384868, -0.00047891937050499107, 1,
   ]
 );
 
@@ -133,12 +138,27 @@ const distancesFromLocations = computed(() =>
 );
 
 const coordinates = ref({ latitude: 0, longitude: 0 });
-const clickedPoints = ref([]);
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
-const correspondingPoints = computed(() => {
-  const matches = clickedPoints.value.map((point) => getMatch(point));
+const clickedPoints = ref([]);
+const clickedPointsOnImageOne = computed(() =>
+  clickedPoints.value.filter(
+    (point) => point[0] < matchingMatrixResult.value.image1.width
+  )
+);
+const correspondingOnImageTwo = computed(() => {
+  const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
   return matches;
 });
+const clickedPointsOnImageTwo = computed(() =>
+  clickedPoints.value.filter(
+    (point) => point[0] >= matchingMatrixResult.value.image1.width
+  )
+);
+// TODO, but i think it's easiest for now to just get the inverse matrix from the server
+// const correspondingOnImageOne = computed(() => {
+//   const matches = clickedPointsOnImageTwo.value.map((point) => getMatch(point));
+//   return matches;
+// });
 
 // TODO check if this needs to be on mounted
 onMounted(async () => {
@@ -336,7 +356,7 @@ const crags = computed(() => {
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
               <circle
-                v-for="clickedPoint in clickedPoints"
+                v-for="clickedPoint in clickedPointsOnImageOne"
                 :key="clickedPoint"
                 :cx="clickedPoint[0]"
                 :cy="clickedPoint[1]"
@@ -344,7 +364,7 @@ const crags = computed(() => {
                 fill="red"
               />
               <circle
-                v-for="(point, index) in correspondingPoints"
+                v-for="(point, index) in correspondingOnImageTwo"
                 :key="index"
                 :cx="
                   point[0] +
