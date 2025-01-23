@@ -37,16 +37,29 @@ print(inliers)
 print(H)
 
 # Iterate over all points from mkpts0
+total_x_distance = 0
+total_y_distance = 0
+num_points = len(mkpts0)
+
 for i, point in enumerate(mkpts0):
-    # Transform the point using the homography matrix
-    point = np.array([[point]], dtype='float32')
-    transformed_point = cv2.perspectiveTransform(point, H)
-    
-    # Print the transformed point and the corresponding point from mkpts1
-    print(f"Original point: {point[0][0]}")
-    print(f"Transformed point: {transformed_point[0][0]}")
-    print(f"Expected point: {mkpts1[i]}")
-    print()
+  # Transform the point using the homography matrix
+  point = np.array([[point]], dtype='float32')
+  transformed_point = cv2.perspectiveTransform(point, H)
+  
+  # Calculate the distances
+  x_distance = abs(transformed_point[0][0][0] - mkpts1[i][0])
+  y_distance = abs(transformed_point[0][0][1] - mkpts1[i][1])
+  
+  # Accumulate the distances
+  total_x_distance += x_distance
+  total_y_distance += y_distance
+
+# Calculate the average distances
+average_x_distance = total_x_distance / num_points
+average_y_distance = total_y_distance / num_points
+
+print(f"Average distance in x: {average_x_distance}")
+print(f"Average distance in y: {average_y_distance}")
 
 # to run this program on a mac: python3 homeography-poc.py
 # to install requirements: pip3 install opencv-python --break-system-packages
