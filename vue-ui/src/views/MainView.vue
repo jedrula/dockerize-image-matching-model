@@ -48,56 +48,25 @@ const availableLocations = [
     },
   },
 ];
+const h = cv.matFromArray(
+  3,
+  3,
+  cv.CV_32F,
+  [
+    0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
+    -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
+  ]
+);
 
-const points1 = window.points1; // [100, 150, 200, 250, 300, 350, 400, 450];
-
-const points2 = window.points2; // [110, 160, 210, 260, 310, 360, 410, 460];
-
-console.log("points1:", points1);
-
-const mat1 = new cv.Mat(points1.length, 1, cv.CV_32FC2);
-mat1.data32F.set(points1);
-const mat2 = new cv.Mat(points2.length, 1, cv.CV_32FC2);
-mat2.data32F.set(points2);
-
-// getMatStats(mat1, "mat1 prior to homography");
-// getMatStats(mat2, "mat2 prior to homography");
-
-const h = cv.findHomography(mat1, mat2, cv.RANSAC);
-
-if (h.empty()) {
-  alert("homography matrix empty!");
-} else {
-  console.log("h:", h);
-  console.log("[", h.data64F[0], ",", h.data64F[1], ",", h.data64F[2]);
-  console.log("", h.data64F[3], ",", h.data64F[4], ",", h.data64F[5]);
-  console.log("", h.data64F[6], ",", h.data64F[7], ",", h.data64F[8], "]");
-}
-
-function logMatch(point) {
+function getMatch(point) {
   const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
   const match = new cv.Mat();
   cv.perspectiveTransform(pointMat, match, h);
   pointMat.delete();
-  console.log("match:", match.data32F[0], match.data32F[1]);
+  return [match.data32F[0], match.data32F[1]];
 }
 
-window.mockres.matched_points.forEach((point) => {
-  console.log("logging match, expected: ", point.point2.x, point.point2.y);
-  logMatch([parseInt(point.point1.x, 10), parseInt(point.point1.y, 10)]);
-});
-
-// taken from
-// {
-//       point1: {
-//         x: 295.5,
-//         y: 479.1891784667969,
-//       },
-//       point2: {
-//         x: 417.63714599609375,
-//         y: 442.4508056640625,
-//       },
-//     },
+console.log(getMatch([295.5, 479.1891784667969]));
 
 // Function to calculate the distance using Haversine formula
 function haversineDistance(lat1, lon1, lat2, lon2) {
