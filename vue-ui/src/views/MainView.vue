@@ -88,10 +88,16 @@ const h = computed(() => {
   return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix);
 });
 
-function getMatch(point) {
+const hInverse = computed(() => {
+  if (!matchingMatrixResult.value?.homography_matrix_inverse) return null;
+  const { homography_matrix_inverse } = matchingMatrixResult.value;
+  return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix_inverse);
+});
+
+function getMatch(point, { inverse = false } = {}) {
   const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
   const match = new cv.Mat();
-  cv.perspectiveTransform(pointMat, match, h.value);
+  cv.perspectiveTransform(pointMat, match, inverse ? hInverse.value : h.value);
   pointMat.delete();
   return [match.data32F[0], match.data32F[1]];
 }
@@ -158,11 +164,20 @@ const clickedPointsOnImageTwo = computed(() =>
     (point) => point[0] >= matchingMatrixResult.value.image1.width
   )
 );
-// TODO, but i think it's easiest for now to just get the inverse matrix from the server
-// const correspondingOnImageOne = computed(() => {
-//   const matches = clickedPointsOnImageTwo.value.map((point) => getMatch(point));
-//   return matches;
-// });
+
+const clickedPointsOnImageTwoAbsolute = computed(() =>
+  clickedPointsOnImageTwo.value.map((point) => [
+    point[0] - matchingMatrixResult.value.image1.width,
+    point[1],
+  ])
+);
+
+const correspondingOnImageOne = computed(() => {
+  const matches = clickedPointsOnImageTwoAbsolute.value.map((point) =>
+    getMatch(point, { inverse: true })
+  );
+  return matches;
+});
 
 // TODO check if this needs to be on mounted
 onMounted(async () => {
@@ -377,6 +392,22 @@ const crags = computed(() => {
                 :cy="point[1]"
                 r="5"
                 fill="blue"
+              />
+              <circle
+                v-for="clickedPoint in clickedPointsOnImageTwo"
+                :key="clickedPoint"
+                :cx="clickedPoint[0]"
+                :cy="clickedPoint[1]"
+                r="5"
+                fill="yellow"
+              />
+              <circle
+                v-for="(point, index) in correspondingOnImageOne"
+                :key="index"
+                :cx="point[0]"
+                :cy="point[1]"
+                r="5"
+                fill="pink"
               />
               <template v-if="showIdentifiedMatchingPoints">
                 <template
