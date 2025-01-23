@@ -67,30 +67,34 @@ const availableLocations = [
     },
   },
 ];
-const h = cv.matFromArray(
-  3,
-  3,
-  cv.CV_32F,
-  // [
-  //   0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
-  //   -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
-  // ]
-  [
-    0.8258637298128778, -0.17502809343937742, 171.27939726107894,
-    0.005538102619544139, 0.8325245262201597, -55.11961990407601,
-    0.00012886671557384868, -0.00047891937050499107, 1,
-  ]
-);
+// const h = cv.matFromArray(
+//   3,
+//   3,
+//   cv.CV_32F,
+//   // [
+//   //   0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
+//   //   -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
+//   // ]
+//   // [
+//   //   0.8258637298128778, -0.17502809343937742, 171.27939726107894,
+//   //   0.005538102619544139, 0.8325245262201597, -55.11961990407601,
+//   //   0.00012886671557384868, -0.00047891937050499107, 1,
+//   // ]
+// );
+
+const h = computed(() => {
+  if (!matchingMatrixResult.value?.homography_matrix) return null;
+  const { homography_matrix } = matchingMatrixResult.value;
+  return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix);
+});
 
 function getMatch(point) {
   const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
   const match = new cv.Mat();
-  cv.perspectiveTransform(pointMat, match, h);
+  cv.perspectiveTransform(pointMat, match, h.value);
   pointMat.delete();
   return [match.data32F[0], match.data32F[1]];
 }
-
-console.log(getMatch([295.5, 479.1891784667969]));
 
 // Function to calculate the distance using Haversine formula
 function haversineDistance(lat1, lon1, lat2, lon2) {
