@@ -479,6 +479,14 @@ const crags = computed(() => {
       >
         Clear {{ isMobile ? "Dots" : "Lines" }}
       </button>
+      <!-- Clear Custom -->
+      <button
+        @click="clickedPoints = []"
+        :disabled="!clickedPoints.length"
+        style="margin-top: 20px; margin-left: 10px"
+      >
+        Clear Custom
+      </button>
       <button
         v-if="isMobile"
         @click="swapImage"
