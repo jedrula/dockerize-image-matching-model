@@ -135,6 +135,10 @@ const distancesFromLocations = computed(() =>
 const coordinates = ref({ latitude: 0, longitude: 0 });
 const clickedPoints = ref([]);
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
+const correspondingPoints = computed(() => {
+  const matches = clickedPoints.value.map((point) => getMatch(point));
+  return matches;
+});
 
 // TODO check if this needs to be on mounted
 onMounted(async () => {
@@ -156,7 +160,7 @@ const image1Url = ref("");
 const isMobile = ref(false);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 const showImage2 = computed(() => !isMobile.value || !showImage1.value);
-const showIdentifiedMatchingPoints = ref(true);
+const showIdentifiedMatchingPoints = ref(false);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -331,16 +335,25 @@ const crags = computed(() => {
         <div class="svg-wrapper" @click="alertCoordinates">
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
-              <template v-for="clickedPoint in clickedPoints">
-                <circle
-                  v-for="clickedPoint in clickedPoints"
-                  :key="clickedPoint"
-                  :cx="clickedPoint[0]"
-                  :cy="clickedPoint[1]"
-                  r="5"
-                  fill="red"
-                />
-              </template>
+              <circle
+                v-for="clickedPoint in clickedPoints"
+                :key="clickedPoint"
+                :cx="clickedPoint[0]"
+                :cy="clickedPoint[1]"
+                r="5"
+                fill="red"
+              />
+              <circle
+                v-for="(point, index) in correspondingPoints"
+                :key="index"
+                :cx="
+                  point[0] +
+                  (showImage1 ? matchingMatrixResult.image1.width : 0)
+                "
+                :cy="point[1]"
+                r="5"
+                fill="blue"
+              />
               <template v-if="showIdentifiedMatchingPoints">
                 <template
                   v-for="(line, index) in lines"
