@@ -30,6 +30,25 @@ const getCoordinates = async function (): Promise<{
   });
 };
 
+const alertCoordinates = (event: MouseEvent) => {
+  // this function will alert coordinates of the clicked point relateive to the left top corner of the svg
+  const svg = document.querySelector("svg");
+  if (!svg) {
+    console.error("SVG element not found.");
+    return;
+  }
+  // const svgRect = svg.getBoundingClientRect();
+  // const x = event.clientX - svgRect.left;
+  // const y = event.clientY - svgRect.top;
+  // clickedPoints.value.push([x, y]);
+  // console.log("Coordinates: ", x, y);
+  const pt = svg.createSVGPoint();
+  pt.x = event.clientX;
+  pt.y = event.clientY;
+  const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+  console.log("Coordinates2: ", cursorpt.x, cursorpt.y);
+  clickedPoints.value.push([cursorpt.x, cursorpt.y]);
+};
 const availableLocations = [
   {
     name: "szczytna_widokowa",
@@ -114,7 +133,9 @@ const distancesFromLocations = computed(() =>
 );
 
 const coordinates = ref({ latitude: 0, longitude: 0 });
+const clickedPoints = ref([]);
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
+
 // TODO check if this needs to be on mounted
 onMounted(async () => {
   try {
@@ -307,9 +328,19 @@ const crags = computed(() => {
           :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
           alt="image 2"
         />
-        <div class="svg-wrapper">
+        <div class="svg-wrapper" @click="alertCoordinates">
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
+              <template v-for="clickedPoint in clickedPoints">
+                <circle
+                  v-for="clickedPoint in clickedPoints"
+                  :key="clickedPoint"
+                  :cx="clickedPoint[0]"
+                  :cy="clickedPoint[1]"
+                  r="5"
+                  fill="red"
+                />
+              </template>
               <template v-if="showIdentifiedMatchingPoints">
                 <template
                   v-for="(line, index) in lines"
