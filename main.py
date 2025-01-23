@@ -177,7 +177,12 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
   mkpts1 = np.array([[pt["point2"]["x"], pt["point2"]["y"]] for pt in best_matched_points])
   H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
 
+  # Convert homography matrix to the required format
   homography_matrix = H.flatten().tolist()
+
+  # Calculate the inverse of the homography matrix
+  H_inv = np.linalg.inv(H)
+  homography_matrix_inv = H_inv.flatten().tolist()
 
   # Replace the extension with .json in a smart way
   base, _ = os.path.splitext(best_match)
@@ -205,7 +210,8 @@ async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = Fil
       "path": best_match
     },
     "best_match_json_content": best_match_json_content,
-    "homography_matrix": homography_matrix
+    "homography_matrix": homography_matrix,
+    "homography_matrix_inverse": homography_matrix_inv
   }
 
 
