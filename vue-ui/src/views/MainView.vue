@@ -30,18 +30,13 @@ const getCoordinates = async function (): Promise<{
   });
 };
 
-const alertCoordinates = (event: MouseEvent) => {
+const collectCoordinates = (event: MouseEvent) => {
   // this function will alert coordinates of the clicked point relateive to the left top corner of the svg
   const svg = document.querySelector("svg");
   if (!svg) {
     console.error("SVG element not found.");
     return;
   }
-  // const svgRect = svg.getBoundingClientRect();
-  // const x = event.clientX - svgRect.left;
-  // const y = event.clientY - svgRect.top;
-  // clickedPoints.value.push([x, y]);
-  // console.log("Coordinates: ", x, y);
   const pt = svg.createSVGPoint();
   pt.x = event.clientX;
   pt.y = event.clientY;
@@ -67,20 +62,6 @@ const availableLocations = [
     },
   },
 ];
-// const h = cv.matFromArray(
-//   3,
-//   3,
-//   cv.CV_32F,
-//   // [
-//   //   0.775087279, -0.144784412, 183.593656, -0.00563296301, 0.845027373,
-//   //   -34.8329315, 0.0000741307313, -0.000387172024, 1.0,
-//   // ]
-//   // [
-//   //   0.8258637298128778, -0.17502809343937742, 171.27939726107894,
-//   //   0.005538102619544139, 0.8325245262201597, -55.11961990407601,
-//   //   0.00012886671557384868, -0.00047891937050499107, 1,
-//   // ]
-// );
 
 const h = computed(() => {
   if (!matchingMatrixResult.value?.homography_matrix) return null;
@@ -371,7 +352,7 @@ const crags = computed(() => {
           :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
           alt="image 2"
         />
-        <div class="svg-wrapper" @click="alertCoordinates">
+        <div class="svg-wrapper" @click="collectCoordinates">
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
               <circle
