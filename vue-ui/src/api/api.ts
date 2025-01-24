@@ -30,24 +30,24 @@ export const findMatch = async (
 };
 
 export const findMatchingMatrix = async (
-  file: File,
+  imageData: string,
   folder: string,
   onUploadProgress: (progressEvent: AxiosProgressEvent) => void
 ) => {
-  const formData = new FormData();
-  formData.append("image1", file);
-
   try {
     const response = await api.post(
-      `/find_matching_matrix?folder_path=${folder}`,
-      formData,
+      `/find_matching_matrix`,
+      {
+        folder_path: folder,
+        image_data: imageData,
+      },
       {
         onUploadProgress,
       }
     );
     return response.data;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Error finding matching matrix:", error);
     throw error;
   }
 };

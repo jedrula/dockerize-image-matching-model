@@ -198,12 +198,57 @@ const uploadFileAndFolder = async () => {
 
   try {
     loading.value = true;
-    matchingMatrixResult.value = await findMatchingMatrix(
-      file1.value,
-      selectedFolder.value,
-      () => {}
-    );
-    await nextTick();
+    await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = async () => {
+          try {
+            const src = cv.imread(img);
+            const maxDim = 840;
+            const scale = maxDim / Math.max(src.rows, src.cols);
+            const dsize = new cv.Size(src.cols * scale, src.rows * scale);
+            const dst = new cv.Mat();
+            cv.resize(src, dst, dsize, 0, 0, cv.INTER_AREA);
+
+            console.log("dst", dst);
+            // const resizedImgData = cv.imencode(".jpg", dst).toString("base64");
+
+            // Convert the resized image to a base64 string using a canvas
+            const canvas = document.createElement("canvas");
+            cv.imshow(canvas, dst);
+            const dataUrl = canvas.toDataURL("image/jpeg");
+            // consider also converting to grayscale here, maybe could save some bandwith on that
+            const resizedImgData = dataUrl.split(",")[1];
+
+            const response = await findMatchingMatrix(
+              resizedImgData,
+              selectedFolder.value,
+              (progressEvent) => {
+                console.log(
+                  "Upload progress:",
+                  progressEvent.loaded / progressEvent.total
+                );
+              }
+            );
+
+            matchingMatrixResult.value = response;
+            src.delete();
+            dst.delete();
+            resolve(void 0);
+          } catch (error) {
+            console.error("Error processing image: ", error);
+            reject(error);
+          }
+        };
+      };
+      reader.onerror = (e) => {
+        console.error("Error reading file: ", e);
+        reject(e);
+      };
+      reader.readAsDataURL(file1.value);
+    });
   } catch (error) {
     errorMessage.value =
       "An error occurred while uploading the file and folder.";
