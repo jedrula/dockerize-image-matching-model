@@ -434,6 +434,17 @@ const hideCragTooltip = () => {
                 v-for="(path, index) in cragsPathsOnImageOne"
                 :key="index"
               >
+                <!-- Invisible wider path for better hover detection -->
+                <path
+                  class="hover-path"
+                  :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
+                  fill="none"
+                  stroke="transparent"
+                  stroke-width="20"
+                  @mouseover="showCragTooltip($event, crags[index])"
+                  @mouseleave="hideCragTooltip"
+                />
+                <!-- Visible thin line -->
                 <path
                   class="e"
                   :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
@@ -442,8 +453,6 @@ const hideCragTooltip = () => {
                     (index * 360) / cragsPathsOnImageOne.length
                   }, 100%, 50%)`"
                   stroke-width="2"
-                  @mouseover="showCragTooltip($event, crags[index])"
-                  @mouseleave="hideCragTooltip"
                 />
               </template>
               <circle
