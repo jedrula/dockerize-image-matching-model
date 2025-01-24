@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick, computed, onMounted } from "vue";
 import { findMatchingMatrix, apiUrl } from "@/api/api";
+import Tooltip from "@/components/Tooltip.vue";
 
 const getCoordinates = async function (): Promise<{
   latitude: number;
@@ -181,6 +182,10 @@ const isMobile = ref(true);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 const showImage2 = computed(() => !isMobile.value || !showImage1.value);
 const showIdentifiedMatchingPoints = ref(false);
+const showTooltip = ref(false);
+const tooltipContent = ref("");
+const tooltipX = ref(0);
+const tooltipY = ref(0);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -340,6 +345,22 @@ const cragsPathsOnImageOne = computed(() => {
     });
   });
 });
+
+const showCragTooltip = (event, crag) => {
+  console.log("showCragTooltip", event, crag);
+  tooltipContent.value = `
+    Name: ${crag.name} <br>
+    Grade: ${crag.grade} <br>
+    Express Count: ${crag.expressCount} <br>
+  `;
+  tooltipX.value = event.clientX + 10;
+  tooltipY.value = event.clientY + 10;
+  showTooltip.value = true;
+};
+
+const hideCragTooltip = () => {
+  showTooltip.value = false;
+};
 </script>
 
 <template>
@@ -421,6 +442,8 @@ const cragsPathsOnImageOne = computed(() => {
                     (index * 360) / cragsPathsOnImageOne.length
                   }, 100%, 50%)`"
                   stroke-width="2"
+                  @mouseover="showCragTooltip($event, crags[index])"
+                  @mouseleave="hideCragTooltip"
                 />
               </template>
               <circle
@@ -554,6 +577,10 @@ const cragsPathsOnImageOne = computed(() => {
       <pre>
         {{ clickedPointsOnImageTwoAbsolute }}
       </pre>
+      {{ tooltipX }}
+      <Tooltip v-show="showTooltip" :x="tooltipX" :y="tooltipY">
+        <div v-html="tooltipContent"></div>
+      </Tooltip>
       <div v-if="crags.length">
         <h2>Crags</h2>
         <ol :start="crags[0].line ?? 0">
