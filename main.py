@@ -3,12 +3,14 @@ import cv2
 import json
 import os
 import numpy as np
+import base64
 import torch
 import matplotlib.pyplot as plt
 import kornia as K
 import kornia.feature as KF 
 from kornia_moons.viz import draw_LAF_matches
 from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -149,11 +151,16 @@ async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile
     }
   }
 
+class ImageData(BaseModel):
+    image_data: str
+    folder_path: str
+
 @app.post("/find_matching_matrix")
-async def find_matching_matrix(folder_path: RegionName, image1: UploadFile = File(...)):
-  tensor1 = get_tensor_image(await image1.read())
+async def find_matching_matrix(data: ImageData):
+  img_bytes = base64.b64decode(data.image_data)
+  tensor1 = get_tensor_image(img_bytes)
   img1 = tensor1['img']
-  compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  compare_images = findFolderImages(f"./images/{regionNameToPath(data.folder_path)}")
 
   best_match = None
   best_score = -1
