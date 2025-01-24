@@ -177,7 +177,7 @@ const image2 = ref(null);
 const file1 = ref<File | null>(null);
 const selectedFolder = ref("");
 const image1Url = ref("");
-const isMobile = ref(false);
+const isMobile = ref(true);
 const showImage1 = ref(true); // Ref to toggle images in mobile view
 const showImage2 = computed(() => !isMobile.value || !showImage1.value);
 const showIdentifiedMatchingPoints = ref(false);
@@ -331,6 +331,15 @@ const swapImage = () => {
 const crags = computed(() => {
   return matchingMatrixResult.value?.best_match_json_content?.crags || [];
 });
+
+const cragsPathsOnImageOne = computed(() => {
+  return crags.value.map((crag) => {
+    const points = crag.path ?? [];
+    return points.map((point) => {
+      return getMatch(point, { inverse: true });
+    });
+  });
+});
 </script>
 
 <template>
@@ -400,6 +409,20 @@ const crags = computed(() => {
         <div class="svg-wrapper" @click="collectCoordinates">
           <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
             <template v-if="svgWidth && svgHeight">
+              <template
+                v-for="(path, index) in cragsPathsOnImageOne"
+                :key="index"
+              >
+                <path
+                  class="e"
+                  :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
+                  fill="none"
+                  :stroke="`hsl(${
+                    (index * 360) / cragsPathsOnImageOne.length
+                  }, 100%, 50%)`"
+                  stroke-width="2"
+                />
+              </template>
               <circle
                 v-for="clickedPoint in clickedPointsOnImageOne"
                 :key="clickedPoint"
@@ -528,6 +551,9 @@ const crags = computed(() => {
       >
         Toggle View
       </button>
+      <pre>
+        {{ clickedPointsOnImageTwoAbsolute }}
+      </pre>
       <div v-if="crags.length">
         <h2>Crags</h2>
         <ol :start="crags[0].line ?? 0">
