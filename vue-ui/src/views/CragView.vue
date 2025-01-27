@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import { getCrag, apiUrl, updateCrag } from "@/api/api";
+import { getCrag, updateCrag, apiUrl } from "@/api/api";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -14,6 +14,8 @@ const cragData = ref({
 
 const svgWidth = ref(0);
 const svgHeight = ref(0);
+const draggingPointIndex = ref(null);
+
 const savedCrags = ref([]);
 const localCrags = ref([]);
 
@@ -78,8 +80,27 @@ const handleSvgClick = (event: MouseEvent) => {
   points.value = [...points.value, [cursorpt.x, cursorpt.y]];
 };
 
+const handleMouseDown = (index: number) => {
+  draggingPointIndex.value = index;
+};
+
 const saveCrag = (index: number) => {
   editingIndex.value = null;
+};
+
+const handleMouseMove = (event: MouseEvent) => {
+  if (draggingPointIndex.value !== null) {
+    const svg = event.target as SVGSVGElement;
+    const pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+    points.value[draggingPointIndex.value] = [cursorpt.x, cursorpt.y];
+  }
+};
+
+const handleMouseUp = () => {
+  draggingPointIndex.value = null;
 };
 
 const uploadCrags = async () => {
@@ -100,6 +121,8 @@ const uploadCrags = async () => {
             :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
             preserveAspectRatio="xMidYMid meet"
             @click="handleSvgClick"
+            @mousemove="handleMouseMove"
+            @mouseup="handleMouseUp"
             class="overlay-svg"
           >
             <template v-if="editedLinePath">
@@ -110,6 +133,7 @@ const uploadCrags = async () => {
                 :cy="point[1]"
                 r="15"
                 fill="red"
+                @mousedown="handleMouseDown(index)"
               />
             </template>
             <path
@@ -174,5 +198,6 @@ img {
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: all;
 }
 </style>
