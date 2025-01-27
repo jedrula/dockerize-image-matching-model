@@ -121,36 +121,6 @@ async def getMatchingMatrix(img1, img2):
 
   return matched_points
 
-@app.post("/get_matching_matrix")
-async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile = File(...)):
-  img1_path = os.path.join('./test-user-images', 'szczytnik_gdzies1.jpeg')
-  tensor1 = get_tensor_image(await image1.read())
-  img1 = tensor1['img']
-  img2_path = os.path.join('./images', 'szczytna', 'widokowa', 'widokowa2.png')
-  tensor2 = get_tensor_image(await image2.read())
-  img2 = tensor2['img']
-  matched_points = await getMatchingMatrix(img1, img2)
-  print(matched_points)
-  return {
-    "matched_points": [
-        {
-            "point1": {"x": float(pt["point1"]["x"]), "y": float(pt["point1"]["y"])},
-            "point2": {"x": float(pt["point2"]["x"]), "y": float(pt["point2"]["y"])}
-        }
-        for pt in matched_points
-    ],
-    "image1": {
-      "width": int(tensor1['w']),
-      "height": int(tensor1['h']),
-      "path": img1_path
-    },
-    "image2": {
-      "width": int(tensor2['w']),
-      "height": int(tensor2['h']),
-      "path": img2_path
-    }
-  }
-
 class ImageData(BaseModel):
     image_data: str
     folder_path: str
@@ -251,7 +221,7 @@ async def getSimilarityScore(tensorImage1, tensorImage2):
 def findFolderImages(folder_path):
   images = []
   for filename in os.listdir(folder_path):
-    if filename.endswith(".jpg") or filename.endswith(".png"):
+    if filename.endswith(".jpg"):
       images.append({
         "path": os.path.join(folder_path, filename),
         # name without extension
@@ -302,5 +272,19 @@ async def get_region(region_name: RegionName):
   folder_path = f"./images/{regionNameToPath(region_name)}"
   found = findFolderImages(folder_path)
   return found
+
+@app.get("/crag/{region_name}/{crag_name}")
+async def get_crag(region_name: RegionName, crag_name: str):
+  folder_path = f"./images/{regionNameToPath(region_name)}"
+  json_path = f"{folder_path}/{crag_name}.json"
+  try:
+    data = json.load(open(json_path))
+  except FileNotFoundError:
+    data = None
+  return {
+    "data": data,
+    "image": f"{folder_path}/{crag_name}.jpg"
+  }
+
     
   

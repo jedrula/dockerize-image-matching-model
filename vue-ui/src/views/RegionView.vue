@@ -17,7 +17,11 @@ onMounted(async () => {
 <template>
   <div>
     <h1>Region</h1>
-    <div v-for="{ name, path } in regionData" :key="path">
+    <div
+      v-for="{ name, path } in regionData"
+      :key="path"
+      @click="$router.push(`/crag/${route.params.region}/${name}`)"
+    >
       <img :src="`${apiUrl}/${path}`" />
       <p>{{ name }}</p>
     </div>

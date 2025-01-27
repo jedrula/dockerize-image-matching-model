@@ -97,3 +97,9 @@ export const getRegion = async (region) => {
   console.log(response.data);
   return response.data;
 };
+
+export const getCrag = async (crag) => {
+  const response = await api.get(`/crag/${crag}`);
+  console.log(response.data);
+  return response.data;
+};
