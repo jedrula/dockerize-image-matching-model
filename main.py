@@ -131,7 +131,7 @@ async def find_matching_matrix(data: ImageData):
   tensor1 = get_tensor_image(img_bytes)
   img1 = tensor1['img']
   found_images = findFolderImages(f"./images/{regionNameToPath(data.folder_path)}")
-  compare_images = [img['path'] for img in foundImages]
+  compare_images = [img['path'] for img in found_images]
 
   best_match = None
   best_score = -1
@@ -238,7 +238,7 @@ def regionNameToPath(region_name):
 async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
   img1 = get_tensor_image(await image1.read())['img']
   found_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
-  compare_images = [img['path'] for img in foundImages]
+  compare_images = [img['path'] for img in found_images]
 
   scores = []
 
