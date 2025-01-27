@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { findMatchingMatrix, apiUrl } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
 

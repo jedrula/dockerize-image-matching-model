@@ -252,7 +252,11 @@ def findFolderImages(folder_path):
   images = []
   for filename in os.listdir(folder_path):
     if filename.endswith(".jpg") or filename.endswith(".png"):
-      images.append(os.path.join(folder_path, filename))
+      images.append({
+        "path": os.path.join(folder_path, filename),
+        # name without extension
+        "name": os.path.splitext(filename)[0]
+      })
   return images
 
 def regionNameToPath(region_name):
@@ -262,7 +266,8 @@ def regionNameToPath(region_name):
 @app.post("/find_match")
 async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
   img1 = get_tensor_image(await image1.read())['img']
-  compare_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  found_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
+  compare_images = [img['path'] for img in foundImages]
 
   scores = []
 
@@ -292,26 +297,10 @@ async def get_test_user_image(rest_of_path: str):
 async def get_ui():
   return FileResponse("./ui/index.html", media_type="text/html")
 
-# @app.post("/warp_image")
-# async def warp_image(image1: UploadFile = File(...), image2: UploadFile = File(...)):
-#   img1 = get_tensor_image(await image1.read())['img']
-#   img2 = get_tensor_image(await image2.read())['img']
-
-#   input_dict = {"image0": K.color.rgb_to_grayscale(img1),
-#           "image1": K.color.rgb_to_grayscale(img2)}
-
-#   with torch.no_grad():
-#     correspondences = matcher(input_dict)
-
-#   mkpts0 = correspondences['keypoints0'].cpu().numpy()
-#   mkpts1 = correspondences['keypoints1'].cpu().numpy()
-#   H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
-#   inliers = (inliers > 0).flatten()
-
-#   img1_np = K.tensor_to_image(img1)
-#   warped_img = cv2.warpPerspective(img1_np, H, (img2.shape[3], img2.shape[2]))
-
-#   warped_img_path = 'warped_output.jpg'
-#   cv2.imwrite(warped_img_path, warped_img)
-
-#   return FileResponse(warped_img_path, media_type="image/jpeg")
+@app.get("/region/{region_name}")
+async def get_region(region_name: RegionName):
+  folder_path = f"./images/{regionNameToPath(region_name)}"
+  found = findFolderImages(folder_path)
+  return found
+    
+  

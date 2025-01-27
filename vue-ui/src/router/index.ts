@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import MainView from "../views/MainView.vue";
+import AddView from "../views/AddView.vue";
+import RegionView from "../views/RegionView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +15,16 @@ const router = createRouter({
       path: "/",
       name: "main",
       component: MainView,
+    },
+    {
+      path: "/add-topo",
+      name: "add-topo",
+      component: AddView,
+    },
+    {
+      path: "/region/:region",
+      name: "region",
+      component: RegionView,
     },
     {
       path: "/matching_matrix",

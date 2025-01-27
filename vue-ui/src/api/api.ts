@@ -6,6 +6,7 @@ const api = axios.create({
   baseURL: apiUrl,
 });
 
+// matching api
 export const findMatch = async (
   file: File,
   folder: string,
@@ -88,4 +89,11 @@ export const getMatchingMatrix = async (file1: File, file2: File) => {
     console.error("Error fetching matching matrix with files:", error);
     throw error;
   }
+};
+
+// region api
+export const getRegion = async (region) => {
+  const response = await api.get(`/region/${region}`);
+  console.log(response.data);
+  return response.data;
 };
