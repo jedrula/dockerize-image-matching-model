@@ -102,6 +102,16 @@ const uploadCrags = async () => {
             @click="handleSvgClick"
             class="overlay-svg"
           >
+            <template v-if="editedLinePath">
+              <circle
+                v-for="(point, index) in points"
+                :key="index"
+                :cx="point[0]"
+                :cy="point[1]"
+                r="15"
+                fill="red"
+              />
+            </template>
             <path
               :d="editedLinePath"
               stroke="red"
@@ -129,7 +139,10 @@ const uploadCrags = async () => {
             <button v-if="editingIndex === index" @click="saveCrag(index)">
               Save
             </button>
-            <button v-else @click="editingIndex = index">Edit</button>
+            <template v-else>
+              <button @click="editingIndex = index">Edit</button>
+              <button @click="localCrags.splice(index, 1)">Delete</button>
+            </template>
           </li>
         </ul>
         <button @click="uploadCrags">Upload</button>
