@@ -103,3 +103,9 @@ export const getCrag = async (crag) => {
   console.log(response.data);
   return response.data;
 };
+
+export const updateCrag = async (crag, data) => {
+  const response = await api.put(`/crag/${crag}`, data);
+  console.log(response.data);
+  return response.data;
+};

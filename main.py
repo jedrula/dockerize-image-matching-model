@@ -286,5 +286,10 @@ async def get_crag(region_name: RegionName, crag_name: str):
     "image": f"{folder_path}/{crag_name}.jpg"
   }
 
-    
-  
+@app.put("/crag/{region_name}/{crag_name}")
+async def put_crag(region_name: RegionName, crag_name: str, data: dict):
+  folder_path = f"./images/{regionNameToPath(region_name)}"
+  json_path = f"{folder_path}/{crag_name}.json"
+  with open(json_path, "w") as f:
+    json.dump(data, f)
+  return {"status": "ok"}
