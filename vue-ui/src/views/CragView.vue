@@ -179,7 +179,7 @@ const uploadCrags = async () => {
 .image-container {
   position: relative;
   display: inline-block;
-  max-width: 300px;
+  max-width: 800px;
 }
 
 .image-wrapper {

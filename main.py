@@ -130,7 +130,8 @@ async def find_matching_matrix(data: ImageData):
   img_bytes = base64.b64decode(data.image_data)
   tensor1 = get_tensor_image(img_bytes)
   img1 = tensor1['img']
-  compare_images = findFolderImages(f"./images/{regionNameToPath(data.folder_path)}")
+  found_images = findFolderImages(f"./images/{regionNameToPath(data.folder_path)}")
+  compare_images = [img['path'] for img in foundImages]
 
   best_match = None
   best_score = -1
