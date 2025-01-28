@@ -172,6 +172,18 @@ async def find_matching_matrix(data: ImageData):
   except FileNotFoundError:
     best_match_json_content = None
 
+  # Map the points in the path property of each crag
+  if best_match_json_content and "crags" in best_match_json_content:
+      for crag in best_match_json_content["crags"]:
+          if "path" in crag:
+              crag["path"] = [
+                  [
+                      point[0] * best_tensor_match['w'] / best_tensor_match['original_w'],
+                      point[1] * best_tensor_match['h'] / best_tensor_match['original_h']
+                  ]
+                  for point in crag["path"]
+              ]
+
   return {
     "matched_points": [
       {
