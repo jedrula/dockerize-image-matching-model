@@ -51,13 +51,15 @@ class RegionName(str, Enum):
 def get_tensor_image(img_bytes):
   img = np.asarray(bytearray(img_bytes), dtype="uint8")
   img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-  scale = 840 / max(img.shape[0], img.shape[1]) 
+  original_h, original_w = img.shape[0], img.shape[1]
+  print(f"Original image size: {original_w}x{original_h}")
+  scale = 840 / max(original_w, original_h) 
   w = int(img.shape[1] * scale)
   h = int(img.shape[0] * scale)
   img = cv2.resize(img, (w, h))
   img = K.image_to_tensor(img, False).float() /255.
   img = K.color.bgr_to_rgb(img)
-  return {"img": img.to(device), "w": w, "h": h}
+  return {"img": img.to(device), "w": w, "h": h, "original_w": original_w, "original_h": original_h}
 
 async def process_matching(img1, img2):
   input_dict = {"image0": K.color.rgb_to_grayscale(img1),
@@ -185,6 +187,8 @@ async def find_matching_matrix(data: ImageData):
     "image2": {
       "width": int(best_tensor_match['w']),
       "height": int(best_tensor_match['h']),
+      "original_width": int(best_tensor_match['original_w']),
+      "original_height": int(best_tensor_match['original_h']),
       "path": best_match
     },
     "best_match_json_content": best_match_json_content,
