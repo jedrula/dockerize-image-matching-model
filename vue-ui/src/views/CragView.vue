@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, useTemplateRef } from "vue";
 import { getCrag, updateCrag, apiUrl } from "@/api/api";
 import { useRoute } from "vue-router";
 
@@ -44,6 +44,8 @@ const notEditedlocalCragPaths = computed(() => {
     });
 });
 
+const svg = useTemplateRef("svg");
+
 onMounted(async () => {
   const crag = await getCrag(`${route.params.region}/${route.params.crag}`);
   image.value = crag.image;
@@ -75,11 +77,10 @@ const handleSvgClick = (event: MouseEvent) => {
   if (editingIndex.value === null) {
     addLocalCrag();
   }
-  const svg = event.target as SVGSVGElement;
-  const pt = svg.createSVGPoint();
+  const pt = svg.value!.createSVGPoint();
   pt.x = event.clientX;
   pt.y = event.clientY;
-  const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+  const cursorpt = pt.matrixTransform(svg.value!.getScreenCTM()?.inverse());
   points.value = [...points.value, [cursorpt.x, cursorpt.y]];
 };
 
@@ -91,13 +92,17 @@ const saveCrag = (index: number) => {
   editingIndex.value = null;
 };
 
+const handleRightClick = (point: number[]) => {
+  event.preventDefault();
+  points.value = points.value.filter((p) => p !== point);
+};
+
 const handleMouseMove = (event: MouseEvent) => {
   if (draggingPointIndex.value !== null) {
-    const svg = event.target as SVGSVGElement;
-    const pt = svg.createSVGPoint();
+    const pt = svg.value!.createSVGPoint();
     pt.x = event.clientX;
     pt.y = event.clientY;
-    const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+    const cursorpt = pt.matrixTransform(svg.value!.getScreenCTM()?.inverse());
     points.value[draggingPointIndex.value] = [cursorpt.x, cursorpt.y];
   }
 };
@@ -122,6 +127,7 @@ const uploadCrags = async () => {
         <div class="image-wrapper">
           <img :src="`${apiUrl}/${image}`" />
           <svg
+            ref="svg"
             :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
             preserveAspectRatio="xMidYMid meet"
             @click="handleSvgClick"
@@ -138,6 +144,7 @@ const uploadCrags = async () => {
                 r="15"
                 fill="red"
                 @mousedown="handleMouseDown(index)"
+                @contextmenu="handleRightClick(point)"
               />
             </template>
             <path
