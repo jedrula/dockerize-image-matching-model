@@ -216,12 +216,6 @@ async def get_matching_with(image1: UploadFile = File(...), image_path: str = ""
   img2 = get_tensor_image(open(image_path, "rb").read())['img']
   return await process_matching(img1, img2)
 
-@app.post("/get_matching")
-async def get_matching(image1: UploadFile = File(...), image2: UploadFile = File(...)):
-  img1 = get_tensor_image(await image1.read())['img']
-  img2 = get_tensor_image(await image2.read())['img']
-  return await process_matching(img1, img2)
-
 async def getSimilarityScore(tensorImage1, tensorImage2):
   input_dict = {"image0": K.color.rgb_to_grayscale(tensorImage1),
       "image1": K.color.rgb_to_grayscale(tensorImage2)}
@@ -249,7 +243,6 @@ def findFolderImages(folder_path):
 def regionNameToPath(region_name):
   return region_name.replace("_", "/")
 
-# possible files we match against are in ./images/stokowka folder. File names are pologa.jpg, przewiecha.jpg, zachodnia.jpg
 @app.post("/find_match")
 async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
   img1 = get_tensor_image(await image1.read())['img']
@@ -274,15 +267,6 @@ async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
 @app.get("/images/{rest_of_path:path}")
 async def get_image(rest_of_path: str):
   return FileResponse(f"./images/{rest_of_path}", media_type="image/jpeg")
-
-@app.get("/test-user-images/{rest_of_path:path}")
-async def get_test_user_image(rest_of_path: str):
-  return FileResponse(f"./test-user-images/{rest_of_path}", media_type="image/jpeg")
-  
-
-@app.get("/ui")
-async def get_ui():
-  return FileResponse("./ui/index.html", media_type="text/html")
 
 @app.get("/region/{region_name}")
 async def get_region(region_name: RegionName):

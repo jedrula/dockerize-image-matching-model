@@ -8,6 +8,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      // legacy route but still functional and can be useful for debugging matching mechanisms/results
       path: "/base",
       name: "base",
       component: import("../views/HomeView.vue"),
@@ -18,16 +19,19 @@ const router = createRouter({
       component: MainView,
     },
     {
+      // TODO - just a placeholder, will allow adding new topos in the future
       path: "/add-topo",
       name: "add-topo",
       component: AddView,
     },
     {
+      // lists all crags in a region
       path: "/region/:region",
       name: "region",
       component: RegionView,
     },
     {
+      // shows single crag (with multiple paths), allows editing
       path: "/crag/:region/:crag",
       name: "crag",
       component: CragView,
