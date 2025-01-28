@@ -18,6 +18,8 @@ const draggingPointIndex = ref(null);
 
 const savedCrags = ref([]);
 const localCrags = ref([]);
+const localName = ref("");
+const editingName = ref(false);
 
 const points = computed({
   get() {
@@ -48,6 +50,7 @@ onMounted(async () => {
   cragData.value = { ...cragData.value, ...crag.data };
   savedCrags.value = crag.data?.crags ?? [];
   localCrags.value = [...savedCrags.value];
+  localName.value = crag.data?.name ?? "";
 
   const img = new Image();
   img.src = `${apiUrl}/${image.value}`;
@@ -106,6 +109,7 @@ const handleMouseUp = () => {
 const uploadCrags = async () => {
   await updateCrag(`${route.params.region}/${route.params.crag}`, {
     crags: localCrags.value,
+    name: localName.value,
   });
 };
 </script>
@@ -154,7 +158,10 @@ const uploadCrags = async () => {
         </div>
       </div>
       <div style="flex: 1; padding-left: 20px">
-        <h2>Name: {{ cragData.name }}</h2>
+        <input v-if="editingName" v-model="localName" />
+        <h2 v-else>Name: {{ cragData.name }}</h2>
+        <button v-if="editingName" @click="editingName = false">Save</button>
+        <button v-else @click="editingName = true">Edit</button>
         <p>Crags</p>
         <ul>
           <li v-for="(crag, index) in localCrags" :key="index">
@@ -170,6 +177,7 @@ const uploadCrags = async () => {
           </li>
         </ul>
         <button @click="uploadCrags">Upload</button>
+        {{ localCrags }}
       </div>
     </div>
   </div>
@@ -179,7 +187,7 @@ const uploadCrags = async () => {
 .image-container {
   position: relative;
   display: inline-block;
-  max-width: 800px;
+  width: 840px;
 }
 
 .image-wrapper {
