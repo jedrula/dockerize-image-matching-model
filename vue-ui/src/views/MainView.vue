@@ -62,6 +62,14 @@ const availableLocations = [
       longitude: 20.4244,
     },
   },
+  {
+    name: "podzamcze",
+    label: "Podzamcze",
+    coordinates: {
+      latitude: 50.454,
+      longitude: 19.555,
+    },
+  },
 ];
 
 const h = computed(() => {

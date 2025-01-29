@@ -46,6 +46,7 @@ matcher = matcher.to(device).eval()
 class RegionName(str, Enum):
   stokowka = "stokowka"
   szczytna_widokowa = "szczytna_widokowa"
+  podzamcze = "podzamcze"
 
 #bytes-image to tensor
 def get_tensor_image(img_bytes):
