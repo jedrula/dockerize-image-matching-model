@@ -3,6 +3,51 @@ import { ref, computed, onMounted } from "vue";
 import { findMatchingMatrix, apiUrl } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
 
+const languages = {
+  en: {
+    pickCragPhoto: "Pick crag photo",
+    selectRegion: "Select Region",
+    submit: "Identify line",
+    useClosestLocation: "Use closest location",
+    showMatchingPoints: "Show Matching Points",
+    hideMatchingPoints: "Hide Matching Points",
+    clearDots: "Clear Dots",
+    clearLines: "Clear Lines",
+    clearCustom: "Clear Custom",
+    swapImage: "Swap Image",
+    toggleView: "Toggle View",
+    startOver: "Start Over",
+    name: "Name",
+    grade: "Grade",
+    expressCount: "Express Count",
+    crags: "Crags",
+  },
+  pl: {
+    pickCragPhoto: "Wybierz zdjęcie skały",
+    selectRegion: "Wybierz region",
+    submit: "Znajdź drogi",
+    useClosestLocation: "Użyj najbliższej lokalizacji",
+    showMatchingPoints: "Pokaż punkty dopasowania",
+    hideMatchingPoints: "Ukryj punkty dopasowania",
+    clearDots: "Wyczyść punkty",
+    clearLines: "Wyczyść linie",
+    clearCustom: "Wyczyść niestandardowe",
+    swapImage: "Zamień obraz",
+    toggleView: "Przełącz widok",
+    startOver: "Zacznij od nowa",
+    name: "Nazwa",
+    grade: "Stopień",
+    expressCount: "Liczba ekspresów",
+    crags: "Skały",
+  },
+};
+
+const selectedLanguage = ref("pl");
+
+const t = (key) => {
+  return languages[selectedLanguage.value][key];
+};
+
 const getCoordinates = async function (): Promise<{
   latitude: number;
   longitude: number;
@@ -383,14 +428,14 @@ const hideCragTooltip = () => {
     <div v-if="!matchingMatrixResult" class="matching-form">
       <div class="file-input">
         <input type="file" id="file-input" @change="handleFileChange1" />
-        <label for="file-input">Pick crag photo</label>
+        <label for="file-input">{{ t("pickCragPhoto") }}</label>
       </div>
       <div
         class="region-select"
         style="display: flex; align-items: center; gap: 5px"
       >
         <select v-model="selectedFolder">
-          <option disabled value="">Select Region</option>
+          <option disabled value="">{{ t("selectRegion") }}</option>
           <option
             v-for="location in distancesFromLocations.length
               ? distancesFromLocations
@@ -408,12 +453,28 @@ const hideCragTooltip = () => {
               href="#"
               @click.prevent="selectedFolder = distancesFromLocations[0].name"
             >
-              Use closest location: {{ distancesFromLocations[0].label }}
+              {{ t("useClosestLocation") }}:
+              {{ distancesFromLocations[0].label }}
             </a>
           </small>
         </div>
       </div>
-      <button @click="uploadFileAndFolder">Submit</button>
+      <!-- <div v-if="loading" class="spinner" style="margin: 10px auto" /> -->
+      <button
+        @click="uploadFileAndFolder"
+        :disabled="loading"
+        style="
+          display: flex;
+          width: 300px;
+          height: 40px;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+        "
+      >
+        {{ t("submit") }}
+        <div v-if="loading" class="spinner" style="display: inline-block"></div>
+      </button>
     </div>
     <div v-if="!matchingMatrixResult && image1Url">
       <img
@@ -422,7 +483,6 @@ const hideCragTooltip = () => {
         tyle="width: 840px; max-width: 100%"
       />
     </div>
-    <div v-if="loading" class="spinner" style="margin: 10px auto" />
     <div v-if="matchingMatrixResult">
       <h2 v-if="matchingMatrixResult?.best_match_json_content.name">
         {{ matchingMatrixResult.best_match_json_content.name }}
@@ -573,11 +633,11 @@ const hideCragTooltip = () => {
           </div>
         </div>
         <div v-if="crags.length">
-          <h2>Crags</h2>
+          <h2>{{ t("crags") }}</h2>
           <ol :start="crags[0].line ?? 0">
             <li v-for="crag in crags" :key="crag.line">
-              {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
-              {{ crag.expressCount }})
+              {{ crag.name }} ({{ t("grade") }}: {{ crag.grade }},
+              {{ t("expressCount") }}: {{ crag.expressCount }})
             </li>
           </ol>
         </div>
@@ -586,14 +646,18 @@ const hideCragTooltip = () => {
         @click="showIdentifiedMatchingPoints = !showIdentifiedMatchingPoints"
         style="margin-top: 20px"
       >
-        Toggle Matching Points
+        {{
+          showIdentifiedMatchingPoints
+            ? t("hideMatchingPoints")
+            : t("showMatchingPoints")
+        }}
       </button>
       <button
         @click="clearLines"
         :disabled="!pickedLines.length"
         style="margin-top: 20px; margin-left: 10px"
       >
-        Clear {{ isMobile ? "Dots" : "Lines" }}
+        {{ t("clearLines") }}
       </button>
       <!-- Clear Custom -->
       <button
@@ -601,7 +665,7 @@ const hideCragTooltip = () => {
         :disabled="!clickedPoints.length"
         style="margin-top: 20px; margin-left: 10px"
       >
-        Clear Custom
+        {{ t("clearCustom") }}
       </button>
       <button
         v-if="isMobile"
@@ -609,14 +673,14 @@ const hideCragTooltip = () => {
         style="margin-top: 20px; margin-left: 10px"
         :disabled="!matchingMatrixResult"
       >
-        Swap Image
+        {{ t("swapImage") }}
       </button>
       <button
         @click="isMobile = !isMobile"
         style="margin-top: 20px; margin-left: 10px"
         :disabled="!matchingMatrixResult"
       >
-        Toggle View
+        {{ t("toggleView") }}
       </button>
       <Tooltip v-show="showTooltip" :x="tooltipX" :y="tooltipY">
         <div v-html="tooltipContent"></div>
@@ -625,7 +689,7 @@ const hideCragTooltip = () => {
         href="#"
         @click="matchingMatrixResult = null"
         style="display: block; text-align: center; color: red; margin-top: 10px"
-        >Start Over</a
+        >{{ t("startOver") }}</a
       >
     </div>
   </div>
@@ -724,11 +788,11 @@ circle.shown {
 }
 
 .spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-left-color: white;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 20px;
+  height: 20px;
   animation: spin 1s linear infinite;
 }
 
