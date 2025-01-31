@@ -381,8 +381,14 @@ const hideCragTooltip = () => {
     </div>
     <div v-if="errorMessage">{{ errorMessage }}</div>
     <div v-if="!matchingMatrixResult" class="matching-form">
-      <input type="file" @change="handleFileChange1" />
-      <div style="display: flex; align-items: center; gap: 5px">
+      <div class="file-input">
+        <input type="file" id="file-input" @change="handleFileChange1" />
+        <label for="file-input">Pick crag photo</label>
+      </div>
+      <div
+        class="region-select"
+        style="display: flex; align-items: center; gap: 5px"
+      >
         <select v-model="selectedFolder">
           <option disabled value="">Select Region</option>
           <option
@@ -618,6 +624,46 @@ const hideCragTooltip = () => {
 </template>
 
 <style scoped>
+.file-input {
+  margin: 20px 0;
+}
+
+.file-input input[type="file"] {
+  display: none;
+}
+
+.file-input label {
+  background-color: #007bff;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.file-input label:hover {
+  background-color: #0056b3;
+}
+
+.region-select select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
 .matching-matrix {
   background-color: #fff;
   border-radius: 5px;
