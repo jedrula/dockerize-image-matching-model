@@ -415,6 +415,13 @@ const hideCragTooltip = () => {
       </div>
       <button @click="uploadFileAndFolder">Submit</button>
     </div>
+    <div v-if="!matchingMatrixResult && image1Url">
+      <img
+        :src="image1Url"
+        alt="Image 1"
+        tyle="width: 840px; max-width: 100%"
+      />
+    </div>
     <div v-if="loading" class="spinner" style="margin: 10px auto" />
     <div v-if="matchingMatrixResult">
       <h2 v-if="matchingMatrixResult?.best_match_json_content.name">
@@ -597,10 +604,6 @@ const hideCragTooltip = () => {
       >
         Toggle View
       </button>
-      <pre>
-        {{ clickedPointsOnImageTwoAbsolute }}
-      </pre>
-      {{ tooltipX }}
       <Tooltip v-show="showTooltip" :x="tooltipX" :y="tooltipY">
         <div v-html="tooltipContent"></div>
       </Tooltip>
