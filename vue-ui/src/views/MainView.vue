@@ -42,7 +42,7 @@ const languages = {
   },
 };
 
-const selectedLanguage = ref("pl");
+const selectedLanguage = ref("en");
 
 const t = (key) => {
   return languages[selectedLanguage.value][key];
