@@ -428,144 +428,158 @@ const hideCragTooltip = () => {
         {{ matchingMatrixResult.best_match_json_content.name }}
       </h2>
       <div
-        class="images-container"
-        :style="{
-          width: `${svgWidth}px`,
-          maxWidth: `min(100%, ${svgWidth}px)`,
-        }"
+        class="images-and-crags-desc"
+        style="display: flex; gap: 20px; flex-wrap: wrap"
       >
-        <img
-          v-if="image1Url && (!isMobile || showImage1)"
-          ref="image1"
-          :width="`${firstImageWidthPercentage}%`"
-          :src="image1Url"
-          alt="image 1"
-        />
-        <img
-          v-if="matchingMatrixResult?.image2 && showImage2"
-          ref="image2"
-          :width="`${secondImageWidthPercentage}%`"
-          :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
-          alt="image 2"
-        />
-        <div class="svg-wrapper" @click="collectCoordinates">
-          <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
-            <template v-if="svgWidth && svgHeight">
-              <template
-                v-for="(path, index) in cragsPathsOnImageOne"
-                :key="index"
-              >
-                <!-- Invisible wider path for better hover detection -->
-                <path
-                  class="hover-path"
-                  :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
-                  fill="none"
-                  stroke="transparent"
-                  stroke-width="20"
-                  @mouseover="showCragTooltip($event, crags[index])"
-                  @mouseleave="hideCragTooltip"
-                />
-                <!-- Visible thin line -->
-                <path
-                  class="e"
-                  :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
-                  fill="none"
-                  :stroke="`hsl(${
-                    (index * 360) / cragsPathsOnImageOne.length
-                  }, 100%, 50%)`"
-                  stroke-width="2"
-                />
-              </template>
-              <circle
-                v-for="clickedPoint in clickedPointsOnImageOne"
-                :key="clickedPoint"
-                :cx="clickedPoint[0]"
-                :cy="clickedPoint[1]"
-                r="5"
-                fill="red"
-              />
-              <circle
-                v-for="(point, index) in correspondingOnImageTwo"
-                :key="index"
-                :cx="
-                  point[0] +
-                  (showImage1 ? matchingMatrixResult.image1.width : 0)
-                "
-                :cy="point[1]"
-                r="5"
-                fill="blue"
-              />
-              <circle
-                v-for="clickedPoint in clickedPointsOnImageTwo"
-                :key="clickedPoint"
-                :cx="clickedPoint[0]"
-                :cy="clickedPoint[1]"
-                r="5"
-                fill="yellow"
-              />
-              <circle
-                v-for="(point, index) in correspondingOnImageOne"
-                :key="index"
-                :cx="point[0]"
-                :cy="point[1]"
-                r="5"
-                fill="pink"
-              />
-              <template v-if="showIdentifiedMatchingPoints">
+        <div
+          class="images-container"
+          :style="{
+            width: `${svgWidth}px`,
+            maxWidth: `min(100%, ${svgWidth}px)`,
+          }"
+        >
+          <img
+            v-if="image1Url && (!isMobile || showImage1)"
+            ref="image1"
+            :width="`${firstImageWidthPercentage}%`"
+            :src="image1Url"
+            alt="image 1"
+          />
+          <img
+            v-if="matchingMatrixResult?.image2 && showImage2"
+            ref="image2"
+            :width="`${secondImageWidthPercentage}%`"
+            :src="`${apiUrl}/${matchingMatrixResult.image2.path}`"
+            alt="image 2"
+          />
+          <div class="svg-wrapper" @click="collectCoordinates">
+            <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
+              <template v-if="svgWidth && svgHeight">
                 <template
-                  v-for="(line, index) in lines"
-                  :key="`circle-${index}`"
+                  v-for="(path, index) in cragsPathsOnImageOne"
+                  :key="index"
                 >
-                  <circle
-                    v-if="!isMobile || showImage1"
-                    :cx="line.x1"
-                    :cy="line.y1"
-                    :r="line.show.value ? 9 : 6"
-                    :stroke="line.show.value ? 'green' : 'black'"
-                    stroke-width="2"
-                    :fill="line.show.value ? 'green' : 'white'"
-                    :fill-opacity="line.show.value ? 1 : 0.5"
-                    @click="circleClicked(line)"
-                    @mouseover="line.hovered.value = true"
-                    @mouseleave="line.hovered.value = false"
-                    :class="{ shown: line.show.value }"
+                  <!-- Invisible wider path for better hover detection -->
+                  <path
+                    class="hover-path"
+                    :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
+                    fill="none"
+                    stroke="transparent"
+                    stroke-width="20"
+                    @mouseover="showCragTooltip($event, crags[index])"
+                    @mouseleave="hideCragTooltip"
                   />
-                  <circle
-                    v-if="!isMobile || !showImage1"
-                    :cx="
-                      showImage1
-                        ? line.x2 + matchingMatrixResult.image1.width
-                        : line.x2
-                    "
-                    :cy="line.y2"
-                    :r="line.show.value ? 9 : 6"
-                    :stroke="line.show.value ? 'green' : 'black'"
+                  <!-- Visible thin line -->
+                  <path
+                    class="e"
+                    :d="`M ${path.map((point) => point.join(',')).join(' L ')}`"
+                    fill="none"
+                    :stroke="`hsl(${
+                      (index * 360) / cragsPathsOnImageOne.length
+                    }, 100%, 50%)`"
                     stroke-width="2"
-                    :fill="line.show.value ? 'green' : 'white'"
-                    :fill-opacity="line.show.value ? 1 : 0.5"
-                    @click="circleClicked(line)"
+                  />
+                </template>
+                <circle
+                  v-for="clickedPoint in clickedPointsOnImageOne"
+                  :key="clickedPoint"
+                  :cx="clickedPoint[0]"
+                  :cy="clickedPoint[1]"
+                  r="5"
+                  fill="red"
+                />
+                <circle
+                  v-for="(point, index) in correspondingOnImageTwo"
+                  :key="index"
+                  :cx="
+                    point[0] +
+                    (showImage1 ? matchingMatrixResult.image1.width : 0)
+                  "
+                  :cy="point[1]"
+                  r="5"
+                  fill="blue"
+                />
+                <circle
+                  v-for="clickedPoint in clickedPointsOnImageTwo"
+                  :key="clickedPoint"
+                  :cx="clickedPoint[0]"
+                  :cy="clickedPoint[1]"
+                  r="5"
+                  fill="yellow"
+                />
+                <circle
+                  v-for="(point, index) in correspondingOnImageOne"
+                  :key="index"
+                  :cx="point[0]"
+                  :cy="point[1]"
+                  r="5"
+                  fill="pink"
+                />
+                <template v-if="showIdentifiedMatchingPoints">
+                  <template
+                    v-for="(line, index) in lines"
+                    :key="`circle-${index}`"
+                  >
+                    <circle
+                      v-if="!isMobile || showImage1"
+                      :cx="line.x1"
+                      :cy="line.y1"
+                      :r="line.show.value ? 9 : 6"
+                      :stroke="line.show.value ? 'green' : 'black'"
+                      stroke-width="2"
+                      :fill="line.show.value ? 'green' : 'white'"
+                      :fill-opacity="line.show.value ? 1 : 0.5"
+                      @click="circleClicked(line)"
+                      @mouseover="line.hovered.value = true"
+                      @mouseleave="line.hovered.value = false"
+                      :class="{ shown: line.show.value }"
+                    />
+                    <circle
+                      v-if="!isMobile || !showImage1"
+                      :cx="
+                        showImage1
+                          ? line.x2 + matchingMatrixResult.image1.width
+                          : line.x2
+                      "
+                      :cy="line.y2"
+                      :r="line.show.value ? 9 : 6"
+                      :stroke="line.show.value ? 'green' : 'black'"
+                      stroke-width="2"
+                      :fill="line.show.value ? 'green' : 'white'"
+                      :fill-opacity="line.show.value ? 1 : 0.5"
+                      @click="circleClicked(line)"
+                      @mouseover="line.hovered.value = true"
+                      @mouseleave="line.hovered.value = false"
+                      :class="{ shown: line.show.value }"
+                    />
+                  </template>
+                </template>
+                <template v-if="!isMobile">
+                  <line
+                    v-for="(line, index) in shownLines"
+                    :key="`line-${index}`"
+                    :x1="line.x1"
+                    :y1="line.y1"
+                    :x2="line.x2 + matchingMatrixResult.image1.width"
+                    :y2="line.y2"
+                    stroke="green"
+                    stroke-width="3"
                     @mouseover="line.hovered.value = true"
                     @mouseleave="line.hovered.value = false"
-                    :class="{ shown: line.show.value }"
                   />
                 </template>
               </template>
-              <template v-if="!isMobile">
-                <line
-                  v-for="(line, index) in shownLines"
-                  :key="`line-${index}`"
-                  :x1="line.x1"
-                  :y1="line.y1"
-                  :x2="line.x2 + matchingMatrixResult.image1.width"
-                  :y2="line.y2"
-                  stroke="green"
-                  stroke-width="3"
-                  @mouseover="line.hovered.value = true"
-                  @mouseleave="line.hovered.value = false"
-                />
-              </template>
-            </template>
-          </svg>
+            </svg>
+          </div>
+        </div>
+        <div v-if="crags.length">
+          <h2>Crags</h2>
+          <ol :start="crags[0].line ?? 0">
+            <li v-for="crag in crags" :key="crag.line">
+              {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
+              {{ crag.expressCount }})
+            </li>
+          </ol>
         </div>
       </div>
       <button
@@ -607,15 +621,6 @@ const hideCragTooltip = () => {
       <Tooltip v-show="showTooltip" :x="tooltipX" :y="tooltipY">
         <div v-html="tooltipContent"></div>
       </Tooltip>
-      <div v-if="crags.length">
-        <h2>Crags</h2>
-        <ol :start="crags[0].line ?? 0">
-          <li v-for="crag in crags" :key="crag.line">
-            {{ crag.name }} (Grade: {{ crag.grade }}, Express Count:
-            {{ crag.expressCount }})
-          </li>
-        </ol>
-      </div>
       <a
         href="#"
         @click="matchingMatrixResult = null"
