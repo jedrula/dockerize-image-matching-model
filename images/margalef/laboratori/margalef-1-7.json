@@ -26,7 +26,7 @@
       "expressCount": 8,
       "length": "14m",
       "grade": "8b+",
-      "path": [],
+      "path": []
     },
     {
       "name": "Photo shot",
@@ -39,7 +39,7 @@
       "name": "Dementia senil",
       "expressCount": 10,
       "length": "16m",
-      "grade": "9a+",
+      "grade": "9a+"
     },
     {
       "name": "Llamps i trons",
@@ -48,4 +48,5 @@
       "grade": "8c+",
       "path": []
     }
+  ]
 }
