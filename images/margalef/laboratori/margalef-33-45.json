@@ -1,0 +1,75 @@
+{
+  "name": "Margalef 33-45",
+  "crags": [
+    {
+      "name": "Zona 30",
+      "expressCount": 5,
+      "length": "11m",
+      "grade": "8b",
+      "path": []
+    },
+    {
+      "name": "Incomodín",
+      "expressCount": 6,
+      "length": "15m",
+      "grade": "8b",
+      "path": [],
+    },
+    {
+      "name": "When we were kings",
+      "expressCount": 6,
+      "length": "15m",
+      "grade": "8b+",
+      "path": [],
+    },
+    {
+      "name": "La ley indignata",
+      "expressCount": 0,
+      "length": "15m",
+      "grade": "9a",
+      "path": [],
+    },
+    {
+      "name": "La ley innata",
+      "expressCount": 0,
+      "length": "15m",
+      "grade": "8c+",
+      "path": [],
+    },
+    {
+      "name": "First ley",
+      "expressCount": 9,
+      "length": "15m",
+      "grade": "9a+",
+      "path": [],
+    },
+    {
+      "name": "First round, First Minute",
+      "expressCount": 7,
+      "length": "15m",
+      "grade": "9b",
+      "path": [],
+    },
+    {
+      "name": "El potro",
+      "expressCount": 7,
+      "length": "15m",
+      "grade": "8c+",
+      "path": [],
+    },
+    {
+      "name": "Bumbayé",
+      "expressCount": 6,
+      "length": "15m",
+      "grade": "8c+",
+      "path": [],
+    },
+    {
+      "name": "Kulebras gemelas",
+      "expressCount": 8,
+      "length": "14m",
+      "grade": "9a",
+      "path": [],
+    },
+
+}

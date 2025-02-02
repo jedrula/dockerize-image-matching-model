@@ -47,6 +47,7 @@ class RegionName(str, Enum):
   stokowka = "stokowka"
   szczytna_widokowa = "szczytna_widokowa"
   podzamcze = "podzamcze"
+  margalef_laboratori = "margalef_laboratori"
 
 #bytes-image to tensor
 def get_tensor_image(img_bytes):

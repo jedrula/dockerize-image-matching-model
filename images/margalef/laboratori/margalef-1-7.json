@@ -1,0 +1,51 @@
+{
+  "name": "Margalef 1-7",
+  "crags": [
+    {
+      "name": "Maltidos Bastardos",
+      "expressCount": 6,
+      "length": "11m",
+      "grade": "8c/8c+",
+      "path": []
+    },
+    {
+      "name": "A la puta rue",
+      "expressCount": 6,
+      "length": "11m",
+      "grade": "8b+",
+      "path": []
+    },
+    {
+      "name": "Darwin Dixit",
+      "expressCount": 0,
+      "grade": "8c",
+      "path": []
+    },
+    {
+      "name": "Doble Lluna",
+      "expressCount": 8,
+      "length": "14m",
+      "grade": "8b+",
+      "path": [],
+    },
+    {
+      "name": "Photo shot",
+      "expressCount": 7,
+      "length": "14m",
+      "grade": "8b",
+      "path": []
+    },
+    {
+      "name": "Dementia senil",
+      "expressCount": 10,
+      "length": "16m",
+      "grade": "9a+",
+    },
+    {
+      "name": "Llamps i trons",
+      "expressCount": 9,
+      "length": "15m",
+      "grade": "8c+",
+      "path": []
+    }
+}
