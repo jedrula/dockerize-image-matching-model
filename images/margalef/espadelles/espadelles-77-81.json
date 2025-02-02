@@ -1,0 +1,40 @@
+{
+  "name": "Espadelles 77-81",
+  "crags": [
+    {
+      "name": "Telemaster",
+      "expressCount": 10,
+      "length": "22m",
+      "grade": "8a",
+      "path": []
+    },
+    {
+      "name": "La Riera",
+      "expressCount": 11,
+      "length": "23m",
+      "grade": "8a+",
+      "path": []
+    },
+    {
+      "name": "Viote, My Friend",
+      "expressCount": 11,
+      "length": "22m",
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Beta de Boira",
+      "expressCount": 0,
+      "length": "25m",
+      "grade": "7a",
+      "path": []
+    },
+    {
+      "name": "Para Cuenca por amor",
+      "expressCount": 10,
+      "length": "22m",
+      "grade": "7a+",
+      "path": []
+    }
+  ]
+}

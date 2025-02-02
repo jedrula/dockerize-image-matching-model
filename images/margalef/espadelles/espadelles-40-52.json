@@ -1,0 +1,67 @@
+{
+  "name": "Espadelles 40-52",
+  "crags": [
+    {
+      "name": "Enemigo publico n°1",
+      "expressCount": 8,
+      "length": "23m",
+      "grade": "9a",
+      "path": []
+    },
+    {
+      "name": "Pal Oeste",
+      "expressCount": 11,
+      "length": "24m",
+      "grade": "8c+",
+      "path": []
+    },
+    {
+      "name": "Pal Norte",
+      "expressCount": 11,
+      "length": "24m",
+      "grade": "8c+",
+      "path": []
+    },
+    {
+      "name": "Pal Este",
+      "expressCount": 12,
+      "length": "24m",
+      "grade": "8c",
+      "path": []
+    },
+    {
+      "name": "Pal Sur",
+      "expressCount": 11,
+      "length": "24m",
+      "grade": "8a",
+      "path": []
+    },
+    {
+      "name": "Ximpleta",
+      "expressCount": 11,
+      "length": "22m",
+      "grade": "8a",
+      "path": []
+    },
+    {
+      "name": "Toni Kaneloni",
+      "expressCount": 10,
+      "length": "22m",
+      "grade": "8a+",
+      "path": []
+    },
+    {
+      "name": "La Drecera",
+      "expressCount": 11,
+      "length": "24m",
+      "grade": "7b",
+      "path": []
+    },
+    {
+      "name": "ONG",
+      "expressCount": 0,
+      "grade": "8a+",
+      "path": []
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "Espadelles 27-33",
+  "crags": [
+    {
+      "name": "Gravity Glove",
+      "expressCount": 0,
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Especial Caballeros",
+      "expressCount": 0,
+      "grade": "7c+/8a",
+      "path": []
+    },
+    {
+      "name": "Maligna",
+      "expressCount": 13,
+      "length": "25m",
+      "grade": "7c",
+      "path": []
+    },
+    {
+      "name": "La Gomorra",
+      "expressCount": 5,
+      "length": "12m",
+      "grade": "7b+",
+      "path": []
+    },
+    {
+      "name": "El Sistema",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Variante Vampiros",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8b+",
+      "path": []
+    },
+    {
+      "name": "Los Ultimos Vampiros Hippies",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8b+",
+      "path": []
+    },
+    {
+      "name": "El tango dei jabali",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8c",
+      "path": []
+    }
+  ]
+}

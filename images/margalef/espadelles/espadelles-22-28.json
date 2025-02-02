@@ -1,0 +1,59 @@
+{
+  "name": "Espadelles 22-28",
+  "crags": [
+    {
+      "name": "Roig Heffner",
+      "expressCount": 6,
+      "length": "20m",
+      "grade": "7a",
+      "path": []
+    },
+    {
+      "name": "Sudoku",
+      "expressCount": 8,
+      "length": "20m",
+      "grade": "7c",
+      "path": []
+    },
+    {
+      "name": "Draculin",
+      "expressCount": 8,
+      "length": "20m",
+      "grade": "7a+",
+      "path": []
+    },
+    {
+      "name": "El Gordinflon",
+      "expressCount": 8,
+      "length": "25m",
+      "grade": "7b",
+      "path": []
+    },
+    {
+      "name": "Globetrotter",
+      "expressCount": 8,
+      "length": "25m",
+      "grade": "7b+",
+      "path": []
+    },
+    {
+      "name": "Gravity Glove",
+      "expressCount": 0,
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Especial Caballeros",
+      "expressCount": 0,
+      "grade": "7c+/8a",
+      "path": []
+    },
+    {
+      "name": "Maligna",
+      "expressCount": 13,
+      "length": "25m",
+      "grade": "7c",
+      "path": []
+    }
+  ]
+}

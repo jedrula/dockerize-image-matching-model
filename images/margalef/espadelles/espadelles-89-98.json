@@ -1,0 +1,68 @@
+{
+  "name": "Espadelles 89-98",
+  "crags": [
+    {
+      "name": "Corporacio Antiestetica",
+      "expressCount": 4,
+      "length": "10m",
+      "grade": "7c",
+      "path": []
+    },
+    {
+      "name": "Malasombra",
+      "expressCount": 10,
+      "length": "20m",
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Braguetasso",
+      "expressCount": 11,
+      "length": "20m",
+      "grade": "8a+",
+      "path": []
+    },
+    {
+      "name": "Batuka",
+      "expressCount": 11,
+      "length": "20m",
+      "grade": "8b",
+      "path": []
+    },
+    {
+      "name": "Transilvania",
+      "expressCount": 10,
+      "length": "20m",
+      "grade": "8a",
+      "path": []
+    },
+    {
+      "name": "Drole de vie",
+      "expressCount": 8,
+      "length": "20m",
+      "grade": "7c",
+      "path": []
+    },
+    {
+      "name": "Amb pal no Dona pal",
+      "expressCount": 0,
+      "length": "25m",
+      "grade": "7b",
+      "path": []
+    },
+    {
+      "name": "Franja de Ponent",
+      "expressCount": 0,
+      "length": "20m",
+      "grade": "7a",
+      "path": []
+    },
+    {
+      "name": "Que pasa neng",
+      "expressCount": 0,
+      "length": "20m",
+      "grade": "7a",
+      "path": []
+    }
+  ]
+}

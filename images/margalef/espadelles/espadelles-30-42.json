@@ -1,0 +1,54 @@
+{
+  "name": "Espadelles 30-42",
+  "crags": [
+    {
+      "name": "La Gomorra",
+      "expressCount": 5,
+      "length": "12m",
+      "grade": "7b+",
+      "path": []
+    },
+    {
+      "name": "El Sistema",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "7c+",
+      "path": []
+    },
+    {
+      "name": "Variante Vampiros",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8b+",
+      "path": []
+    },
+    {
+      "name": "Los Ultimos Vampiros Hippies",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8b+",
+      "path": []
+    },
+    {
+      "name": "El tango dei jabali",
+      "expressCount": 10,
+      "length": "23m",
+      "grade": "8c",
+      "path": []
+    },
+    {
+      "name": "El Ball Del Triceps",
+      "expressCount": 8,
+      "length": "23m",
+      "grade": "8b",
+      "path": []
+    },
+    {
+      "name": "Pal Oeste",
+      "expressCount": 11,
+      "length": "24m",
+      "grade": "8c+",
+      "path": []
+    }
+  ]
+}
