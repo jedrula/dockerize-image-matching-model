@@ -115,6 +115,22 @@ const availableLocations = [
       longitude: 19.555,
     },
   },
+  {
+    name: "margalef_laboratori",
+    label: "Margalef Laboratori",
+    coordinates: {
+      latitude: 41.29738,
+      longitude: 0.77892,
+    },
+  },
+  {
+    name: "margalef_espadelles",
+    label: "Margalef Espadelles",
+    coordinates: {
+      latitude: 41.30202,
+      longitude: 0.773774,
+    },
+  },
 ];
 
 const h = computed(() => {
