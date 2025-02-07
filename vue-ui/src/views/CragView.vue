@@ -178,7 +178,9 @@ const uploadCrags = async () => {
               Save
             </button>
             <template v-else>
-              <button @click="editingIndex = index">Edit</button>
+              <button @click="editingIndex = index">
+                {{ crag.path?.length ? "Edit" : "Add" }}
+              </button>
               <button @click="localCrags.splice(index, 1)">Delete</button>
             </template>
           </li>
