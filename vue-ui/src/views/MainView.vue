@@ -131,6 +131,14 @@ const availableLocations = [
       longitude: 0.773774,
     },
   },
+  {
+    name: "sanvito_callamancina",
+    label: "San Vito Calla Mancina",
+    coordinates: {
+      latitude: 38.177278,
+      longitude: 12.71725,
+    },
+  },
 ];
 
 const h = computed(() => {
