@@ -243,7 +243,7 @@ const secondImageWidthPercentage = computed(() => {
             <circle
               v-for="(point, index) in correspondingOnImageTwo"
               :key="index"
-              :cx="point[0] + matchingResult.value.image1.width"
+              :cx="point[0] + matchingResult.image1.width"
               :cy="point[1]"
               r="5"
               fill="blue"
