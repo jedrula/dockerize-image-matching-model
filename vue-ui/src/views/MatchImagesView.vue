@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, nextTick } from "vue";
 import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -11,6 +11,12 @@ const image2Url = ref("");
 const matchingResult = ref(null);
 const errorMessage = ref("");
 const loading = ref(false);
+
+const clickedPoints = ref([]);
+const image1 = ref(null);
+const image2 = ref(null);
+const svgWidth = ref(0);
+const svgHeight = ref(0);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -82,6 +88,8 @@ const uploadFiles = async () => {
                 });
                 matchingResult.value = response.data;
                 errorMessage.value = "";
+                await nextTick();
+                updateSvgDimensions();
               } catch (error) {
                 errorMessage.value =
                   "An error occurred while uploading the files.";
@@ -115,6 +123,83 @@ const uploadFiles = async () => {
     loading.value = false;
   }
 };
+
+const updateSvgDimensions = () => {
+  if (image1.value && image2.value) {
+    svgWidth.value = image1.value.width + image2.value.width;
+    svgHeight.value = Math.max(image1.value.height, image2.value.height);
+  }
+};
+
+const collectCoordinates = (event: MouseEvent) => {
+  const svg = event.target as SVGSVGElement;
+  const pt = svg.createSVGPoint();
+  pt.x = event.clientX;
+  pt.y = event.clientY;
+  const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+  clickedPoints.value.push([cursorpt.x, cursorpt.y]);
+};
+
+const clickedPointsOnImageOne = computed(() =>
+  clickedPoints.value.filter(
+    (point) => point[0] < matchingResult.value.image1.width
+  )
+);
+
+const clickedPointsOnImageTwo = computed(() =>
+  clickedPoints.value.filter(
+    (point) => point[0] >= matchingResult.value.image1.width
+  )
+);
+
+const clickedPointsOnImageTwoAbsolute = computed(() =>
+  clickedPointsOnImageTwo.value.map((point) => [
+    point[0] - matchingResult.value.image1.width,
+    point[1],
+  ])
+);
+
+const getMatch = (point, { inverse = false } = {}) => {
+  const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
+  const match = new cv.Mat();
+  cv.perspectiveTransform(pointMat, match, inverse ? hInverse.value : h.value);
+  pointMat.delete();
+  return [match.data32F[0], match.data32F[1]];
+};
+
+const correspondingOnImageTwo = computed(() => {
+  const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
+  return matches;
+});
+
+const correspondingOnImageOne = computed(() => {
+  const matches = clickedPointsOnImageTwoAbsolute.value.map((point) =>
+    getMatch(point, { inverse: true })
+  );
+  return matches;
+});
+
+const h = computed(() => {
+  if (!matchingResult.value?.homography_matrix) return null;
+  const { homography_matrix } = matchingResult.value;
+  return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix);
+});
+
+const hInverse = computed(() => {
+  if (!matchingResult.value?.homography_matrix_inverse) return null;
+  const { homography_matrix_inverse } = matchingResult.value;
+  return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix_inverse);
+});
+
+const firstImageWidthPercentage = computed(() => {
+  if (!matchingResult.value?.image1?.width) return 0;
+  return (matchingResult.value.image1.width / svgWidth.value) * 100;
+});
+
+const secondImageWidthPercentage = computed(() => {
+  if (!matchingResult.value?.image2?.width) return 0;
+  return (matchingResult.value.image2.width / svgWidth.value) * 100;
+});
 </script>
 
 <template>
@@ -130,8 +215,58 @@ const uploadFiles = async () => {
       </button>
     </div>
     <div class="images-container">
-      <img v-if="image1Url" :src="image1Url" alt="Image 1" />
-      <img v-if="image2Url" :src="image2Url" alt="Image 2" />
+      <img
+        v-if="image1Url"
+        ref="image1"
+        :width="`${firstImageWidthPercentage}%`"
+        :src="image1Url"
+        alt="Image 1"
+      />
+      <img
+        v-if="image2Url"
+        ref="image2"
+        :width="`${secondImageWidthPercentage}%`"
+        :src="image2Url"
+        alt="Image 2"
+      />
+      <div class="svg-wrapper" @click="collectCoordinates">
+        <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`">
+          <template v-if="svgWidth && svgHeight">
+            <circle
+              v-for="clickedPoint in clickedPointsOnImageOne"
+              :key="clickedPoint"
+              :cx="clickedPoint[0]"
+              :cy="clickedPoint[1]"
+              r="5"
+              fill="red"
+            />
+            <circle
+              v-for="(point, index) in correspondingOnImageTwo"
+              :key="index"
+              :cx="point[0] + matchingResult.value.image1.width"
+              :cy="point[1]"
+              r="5"
+              fill="blue"
+            />
+            <circle
+              v-for="clickedPoint in clickedPointsOnImageTwo"
+              :key="clickedPoint"
+              :cx="clickedPoint[0]"
+              :cy="clickedPoint[1]"
+              r="5"
+              fill="yellow"
+            />
+            <circle
+              v-for="(point, index) in correspondingOnImageOne"
+              :key="index"
+              :cx="point[0]"
+              :cy="point[1]"
+              r="5"
+              fill="pink"
+            />
+          </template>
+        </svg>
+      </div>
     </div>
     <div v-if="matchingResult">
       <h2>Matching Result</h2>
@@ -152,8 +287,16 @@ const uploadFiles = async () => {
 }
 
 .images-container {
+  position: relative;
   display: flex;
-  gap: 10px;
+}
+
+.svg-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 img {
