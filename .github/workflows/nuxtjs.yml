@@ -20,7 +20,7 @@ permissions:
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   # Build job
@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: cd vue-ui && npm ci
       - name: Static HTML export with vue
-        run: cd vue-ui && npm run build-only
+        run: cd vue-ui && npm run build-only && cp index.html 404.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
