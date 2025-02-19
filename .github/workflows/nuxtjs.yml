@@ -62,11 +62,11 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Static HTML export with vue
-        run: ${{ steps.detect-package-manager.outputs.manager }} run build
+        run: cd vue-ui && ${{ steps.detect-package-manager.outputs.manager }} run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./vue-ui/dist
 
   # Deployment job
   deploy:
