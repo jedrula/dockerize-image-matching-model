@@ -1,11 +1,11 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import MainView from "../views/MainView.vue";
 import AddView from "../views/AddView.vue";
 import RegionView from "../views/RegionView.vue";
 import CragView from "../views/CragView.vue";
 
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       // legacy route but still functional and can be useful for debugging matching mechanisms/results
