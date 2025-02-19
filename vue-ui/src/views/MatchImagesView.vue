@@ -10,6 +10,7 @@ const image1Url = ref("");
 const image2Url = ref("");
 const matchingResult = ref(null);
 const errorMessage = ref("");
+const loading = ref(false);
 
 const handleFileChange1 = (event: Event) => {
   const fileInput = event.target as HTMLInputElement;
@@ -33,21 +34,85 @@ const uploadFiles = async () => {
     return;
   }
 
-  const formData = new FormData();
-  formData.append("image1", file1.value);
-  formData.append("image2", file2.value);
-
   try {
-    const response = await axios.post(`${apiUrl}/get_matching`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    loading.value = true;
+    await new Promise((resolve, reject) => {
+      const reader1 = new FileReader();
+      const reader2 = new FileReader();
+
+      reader1.onload = async (e1) => {
+        const img1 = new Image();
+        img1.src = e1.target?.result as string;
+        img1.onload = async () => {
+          const src1 = cv.imread(img1);
+          const maxDim1 = 840;
+          const scale1 = maxDim1 / Math.max(src1.rows, src1.cols);
+          const dsize1 = new cv.Size(src1.cols * scale1, src1.rows * scale1);
+          const dst1 = new cv.Mat();
+          cv.resize(src1, dst1, dsize1, 0, 0, cv.INTER_AREA);
+
+          const canvas1 = document.createElement("canvas");
+          cv.imshow(canvas1, dst1);
+          const dataUrl1 = canvas1.toDataURL("image/jpeg");
+          const resizedImgData1 = dataUrl1.split(",")[1];
+
+          reader2.onload = async (e2) => {
+            const img2 = new Image();
+            img2.src = e2.target?.result as string;
+            img2.onload = async () => {
+              const src2 = cv.imread(img2);
+              const maxDim2 = 840;
+              const scale2 = maxDim2 / Math.max(src2.rows, src2.cols);
+              const dsize2 = new cv.Size(
+                src2.cols * scale2,
+                src2.rows * scale2
+              );
+              const dst2 = new cv.Mat();
+              cv.resize(src2, dst2, dsize2, 0, 0, cv.INTER_AREA);
+
+              const canvas2 = document.createElement("canvas");
+              cv.imshow(canvas2, dst2);
+              const dataUrl2 = canvas2.toDataURL("image/jpeg");
+              const resizedImgData2 = dataUrl2.split(",")[1];
+
+              try {
+                const response = await axios.post(`${apiUrl}/get_matching`, {
+                  image1: resizedImgData1,
+                  image2: resizedImgData2,
+                });
+                matchingResult.value = response.data;
+                errorMessage.value = "";
+              } catch (error) {
+                errorMessage.value =
+                  "An error occurred while uploading the files.";
+                console.error(error);
+              } finally {
+                src1.delete();
+                dst1.delete();
+                src2.delete();
+                dst2.delete();
+                resolve(void 0);
+              }
+            };
+          };
+          reader2.onerror = (e) => {
+            console.error("Error reading file: ", e);
+            reject(e);
+          };
+          reader2.readAsDataURL(file2.value);
+        };
+      };
+      reader1.onerror = (e) => {
+        console.error("Error reading file: ", e);
+        reject(e);
+      };
+      reader1.readAsDataURL(file1.value);
     });
-    matchingResult.value = response.data;
-    errorMessage.value = "";
   } catch (error) {
     errorMessage.value = "An error occurred while uploading the files.";
     console.error(error);
+  } finally {
+    loading.value = false;
   }
 };
 </script>
@@ -59,7 +124,10 @@ const uploadFiles = async () => {
     <div class="file-inputs">
       <input type="file" @change="handleFileChange1" />
       <input type="file" @change="handleFileChange2" />
-      <button @click="uploadFiles">Submit</button>
+      <button @click="uploadFiles" :disabled="loading">
+        Submit
+        <div v-if="loading" class="spinner"></div>
+      </button>
     </div>
     <div class="images-container">
       <img v-if="image1Url" :src="image1Url" alt="Image 1" />
@@ -98,5 +166,33 @@ pre {
   padding: 10px;
   border-radius: 5px;
   overflow-x: auto;
+}
+
+button {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.spinner {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-left-color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

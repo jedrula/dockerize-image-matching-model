@@ -1,5 +1,6 @@
 DEV BACKLOG:
 
+0. Do some cleanup, mostly on frontend. Reuse functions
 1. Only show lines that are visible in single image view
 2. show proper numbers
 3. provide grade for each line, and express count - in this priority

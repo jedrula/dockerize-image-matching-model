@@ -131,6 +131,11 @@ class ImageData(BaseModel):
     image_data: str
     folder_path: str
 
+class TwoImagesData(BaseModel):
+    image1: str
+    image2: str
+
+
 @app.post("/find_matching_matrix")
 async def find_matching_matrix(data: ImageData):
   img_bytes = base64.b64decode(data.image_data)
@@ -213,10 +218,47 @@ async def find_matching_matrix(data: ImageData):
   }
 
 @app.post("/get_matching")
-async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile = File(...)):
-  img1 = get_tensor_image(await image1.read())['img']
-  img2 = get_tensor_image(await image2.read())['img']
-  return await process_matching(img1, img2)
+async def get_matching(data: TwoImagesData):
+    # Convert base64 strings to tensors
+    tensor1 = get_tensor_image(base64.b64decode(data.image1))
+    img1 = tensor1['img']
+    tensor2 = get_tensor_image(base64.b64decode(data.image2))
+    img2 = tensor2['img']
+
+    # Get matching points
+    matched_points = await getMatchingMatrix(img1, img2)
+
+    # Calculate homography matrix
+    mkpts0 = np.array([[pt["point1"]["x"], pt["point1"]["y"]] for pt in matched_points])
+    mkpts1 = np.array([[pt["point2"]["x"], pt["point2"]["y"]] for pt in matched_points])
+    H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0)
+
+    # Convert homography matrix to the required format
+    homography_matrix = H.flatten().tolist()
+
+    # Calculate the inverse of the homography matrix
+    H_inv = np.linalg.inv(H)
+    homography_matrix_inv = H_inv.flatten().tolist()
+
+    return {
+        "matched_points": [
+            {
+                "point1": {"x": float(pt["point1"]["x"]), "y": float(pt["point1"]["y"])},
+                "point2": {"x": float(pt["point2"]["x"]), "y": float(pt["point2"]["y"])}
+            }
+            for pt in matched_points
+        ],
+        "image1": {
+            "width": int(tensor1['w']),
+            "height": int(tensor1['h']),
+        },
+        "image2": {
+            "width": int(tensor2['w']),
+            "height": int(tensor2['h']),
+        },
+        "homography_matrix": homography_matrix,
+        "homography_matrix_inverse": homography_matrix_inv
+    }
 
 
 
