@@ -25,7 +25,7 @@ print("API is ready to use")
 # Add CORS middleware
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:5173", "https://topomatch.surge.sh"],
+  allow_origins=["http://localhost:5173", "https://topomatch.surge.sh", "https://jedrula.github.io"],
   allow_credentials=True,
   allow_methods=["*"],
   allow_headers=["*"],
