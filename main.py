@@ -212,6 +212,12 @@ async def find_matching_matrix(data: ImageData):
     "homography_matrix_inverse": homography_matrix_inv
   }
 
+@app.post("/get_matching")
+async def get_matching_matrix(image1: UploadFile = File(...), image2: UploadFile = File(...)):
+  img1 = get_tensor_image(await image1.read())['img']
+  img2 = get_tensor_image(await image2.read())['img']
+  return await process_matching(img1, img2)
+
 
 
 @app.post("/get_matching_with")

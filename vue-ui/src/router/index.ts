@@ -14,6 +14,11 @@ const router = createRouter({
       component: import("../views/HomeView.vue"),
     },
     {
+      path: "/match-images",
+      name: "match-images",
+      component: () => import("../views/MatchImagesView.vue"),
+    },
+    {
       path: "/",
       name: "main",
       component: MainView,

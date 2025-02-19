@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "deploy": "VITE_API_BASE_URL=https://2665-77-222-255-69.ngrok-free.app vite build && surge dist --domain https://topomatch.surge.sh",
     "test:unit": "vitest",
-    "build-only": "VITE_API_BASE_URL=https://2665-77-222-255-69.ngrok-free.app vite build",
+    "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix"
   },
