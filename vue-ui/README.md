@@ -24,6 +24,8 @@ First you want to figure out what is the production VITE_API_BASE_URL. For examp
 VITE_API_BASE_URL=figured_out_prod_api_url npm run deploy
 ```
 
+Lately there was downtime to surge.sh and I created a github action that build and deploys the vite app to github pages. It happens on push to main and the url is https://jedrula.github.io/dockerize-image-matching-model/
+
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
 ```sh
