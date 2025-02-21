@@ -58,7 +58,7 @@ const onAddCrag = async () => {
 
         await addCrag({
           region_name: route.params.region as string,
-          cragData,
+          ...cragData,
         });
         router.push(`/crag/${route.params.region}/${newCragName.value}`);
       };

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import kornia as K
 import kornia.feature as KF 
 from kornia_moons.viz import draw_LAF_matches
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, Form, UploadFile, File
 from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -141,6 +141,10 @@ class ImageData(BaseModel):
 class TwoImagesData(BaseModel):
     image1: str
     image2: str
+
+class CragData(BaseModel):
+    name: str
+    image: str
 
 
 @app.post("/find_matching_matrix")
@@ -359,3 +363,25 @@ async def put_crag(region_name: str, crag_name: str, data: dict):
   with open(json_path, "w") as f:
     json.dump(data, f)
   return {"status": "ok"}
+
+@app.post("/region/{region_name}/crag")
+async def add_crag(region_name: str, crag_data: CragData):
+    folder_path = f"./images/{regionNameToPath(region_name)}"
+    json_path = f"{folder_path}/{crag_data.name}.json"
+    image_path = f"{folder_path}/{crag_data.name}.jpg"
+
+    os.makedirs(folder_path, exist_ok=True)
+
+    crag_data_dict = {
+        "name": crag_data.name,
+        "path": []
+    }
+
+    with open(json_path, "w") as f:
+        json.dump(crag_data_dict, f)
+
+    img_bytes = base64.b64decode(crag_data.image)
+    with open(image_path, "wb") as img_file:
+        img_file.write(img_bytes)
+
+    return {"status": "ok"}
