@@ -146,6 +146,36 @@ class CragData(BaseModel):
     name: str
     image: str
 
+def get_available_locations():
+    base_path = "./images"
+    locations = []
+    for root, dirs, files in os.walk(base_path):
+        for dir_name in dirs:
+            location_path = os.path.join(root, dir_name)
+            location_name = dir_name.replace("_", " ").title()
+            locations.append({
+                "name": dir_name,
+                "label": location_name,
+                "coordinates": get_coordinates_for_location(dir_name)  # Assuming you have a function to get coordinates
+            })
+    return locations
+
+def get_coordinates_for_location(location_name):
+    # Dummy implementation, replace with actual logic to get coordinates
+    coordinates = {
+        "szczytna_widokowa": {"latitude": 50.411051, "longitude": 16.456668},
+        "stokowka": {"latitude": 50.8325, "longitude": 20.4244},
+        "podzamcze": {"latitude": 50.454, "longitude": 19.555},
+        "margalef_laboratori": {"latitude": 41.29738, "longitude": 0.77892},
+        "margalef_espadelles": {"latitude": 41.30202, "longitude": 0.773774},
+        "sanvito_callamancina": {"latitude": 38.177278, "longitude": 12.71725},
+    }
+    return coordinates.get(location_name, {"latitude": 0, "longitude": 0})
+
+@app.get("/locations")
+async def get_locations():
+    locations = get_available_locations()
+    return {"locations": locations}
 
 @app.post("/find_matching_matrix")
 async def find_matching_matrix(data: ImageData):

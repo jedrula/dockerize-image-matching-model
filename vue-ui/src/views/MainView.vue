@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { findMatchingMatrix, apiUrl } from "@/api/api";
+import { findMatchingMatrix, getLocations, apiUrl } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
 
 const languages = {
@@ -90,56 +90,6 @@ const collectCoordinates = (event: MouseEvent) => {
   console.log("Coordinates2: ", cursorpt.x, cursorpt.y);
   clickedPoints.value.push([cursorpt.x, cursorpt.y]);
 };
-const availableLocations = [
-  {
-    name: "szczytna_widokowa",
-    label: "Szczytna Widokowa",
-    coordinates: {
-      latitude: 50.411051,
-      longitude: 16.456668,
-    },
-  },
-  {
-    name: "stokowka",
-    label: "Stokowka",
-    coordinates: {
-      latitude: 50.8325,
-      longitude: 20.4244,
-    },
-  },
-  {
-    name: "podzamcze",
-    label: "Podzamcze",
-    coordinates: {
-      latitude: 50.454,
-      longitude: 19.555,
-    },
-  },
-  {
-    name: "margalef_laboratori",
-    label: "Margalef Laboratori",
-    coordinates: {
-      latitude: 41.29738,
-      longitude: 0.77892,
-    },
-  },
-  {
-    name: "margalef_espadelles",
-    label: "Margalef Espadelles",
-    coordinates: {
-      latitude: 41.30202,
-      longitude: 0.773774,
-    },
-  },
-  {
-    name: "sanvito_callamancina",
-    label: "San Vito Calla Mancina",
-    coordinates: {
-      latitude: 38.177278,
-      longitude: 12.71725,
-    },
-  },
-];
 
 const h = computed(() => {
   if (!matchingMatrixResult.value?.homography_matrix) return null;
@@ -189,7 +139,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 const distancesFromLocations = computed(() =>
-  availableLocations
+  availableLocations.value
     .map((location) => {
       const distance = haversineDistance(
         coordinates.value.latitude,
@@ -238,9 +188,12 @@ const correspondingOnImageOne = computed(() => {
   return matches;
 });
 
+const availableLocations = ref([]);
+
 // TODO check if this needs to be on mounted
 onMounted(async () => {
   try {
+    availableLocations.value = await getLocations();
     coordinates.value = await getCoordinates();
   } catch (error) {
     console.error("Error getting coordinates: ", error);

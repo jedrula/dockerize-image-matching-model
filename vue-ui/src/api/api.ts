@@ -125,3 +125,8 @@ export const addCrag = async ({
   console.log(response.data);
   return response.data;
 };
+
+export const getLocations = async () => {
+  const response = await api.get(`/locations`);
+  return response.data.locations;
+};
