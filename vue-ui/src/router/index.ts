@@ -25,8 +25,8 @@ const router = createRouter({
     },
     {
       // TODO - just a placeholder, will allow adding new topos in the future
-      path: "/add-topo",
-      name: "add-topo",
+      path: "/add-region",
+      name: "add-region",
       component: AddView,
     },
     {

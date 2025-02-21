@@ -11,8 +11,12 @@ import kornia.feature as KF
 from kornia_moons.viz import draw_LAF_matches
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
+
 
 #setting up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,13 +47,16 @@ matcher = KF.LoFTR(pretrained=None)
 matcher.load_state_dict(torch.load("./models/loftr_outdoor.ckpt")['state_dict'])
 matcher = matcher.to(device).eval()
 
-class RegionName(str, Enum):
-  stokowka = "stokowka"
-  szczytna_widokowa = "szczytna_widokowa"
-  podzamcze = "podzamcze"
-  margalef_laboratori = "margalef_laboratori"
-  margalef_espadelles = "margalef_espadelles"
-  sanvito_callamancina = "sanvito_callamancina"
+class RegionData(BaseModel):
+  region_name: str
+  crags: Optional[List] = []
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
 
 #bytes-image to tensor
 def get_tensor_image(img_bytes):
@@ -296,7 +303,7 @@ def regionNameToPath(region_name):
   return region_name.replace("_", "/")
 
 @app.post("/find_match")
-async def find_match(folder_path: RegionName, image1: UploadFile = File(...)):
+async def find_match(folder_path: str, image1: UploadFile = File(...)):
   img1 = get_tensor_image(await image1.read())['img']
   found_images = findFolderImages(f"./images/{regionNameToPath(folder_path)}")
   compare_images = [img['path'] for img in found_images]
@@ -321,13 +328,19 @@ async def get_image(rest_of_path: str):
   return FileResponse(f"./images/{rest_of_path}", media_type="image/jpeg")
 
 @app.get("/region/{region_name}")
-async def get_region(region_name: RegionName):
+async def get_region(region_name: str):
   folder_path = f"./images/{regionNameToPath(region_name)}"
   found = findFolderImages(folder_path)
   return found
 
+@app.post("/region")
+async def post_region(region_data: RegionData):
+    folder_path = f"./images/{regionNameToPath(region_data.region_name)}"
+    os.makedirs(folder_path, exist_ok=False)
+    return {"status": "ok"}
+
 @app.get("/crag/{region_name}/{crag_name}")
-async def get_crag(region_name: RegionName, crag_name: str):
+async def get_crag(region_name: str, crag_name: str):
   folder_path = f"./images/{regionNameToPath(region_name)}"
   json_path = f"{folder_path}/{crag_name}.json"
   try:
@@ -340,7 +353,7 @@ async def get_crag(region_name: RegionName, crag_name: str):
   }
 
 @app.put("/crag/{region_name}/{crag_name}")
-async def put_crag(region_name: RegionName, crag_name: str, data: dict):
+async def put_crag(region_name: str, crag_name: str, data: dict):
   folder_path = f"./images/{regionNameToPath(region_name)}"
   json_path = f"{folder_path}/{crag_name}.json"
   with open(json_path, "w") as f:

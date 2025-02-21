@@ -91,9 +91,14 @@ export const getMatchingMatrix = async (file1: File, file2: File) => {
   }
 };
 
-// region api
 export const getRegion = async (region) => {
   const response = await api.get(`/region/${region}`);
+  console.log(response.data);
+  return response.data;
+};
+
+export const createRegion = async (data) => {
+  const response = await api.post(`/region`, data);
   console.log(response.data);
   return response.data;
 };
