@@ -114,3 +114,14 @@ export const updateCrag = async (crag, data) => {
   console.log(response.data);
   return response.data;
 };
+
+export const addCrag = async ({
+  region_name,
+  ...cragData
+}: {
+  region_name: string;
+}) => {
+  const response = await api.post(`${region_name}/crag`, cragData);
+  console.log(response.data);
+  return response.data;
+};
