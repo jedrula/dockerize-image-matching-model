@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { findMatch, getBestMatchPreview, apiUrl } from "@/api/api";
+import { ref, onMounted } from "vue";
+import {
+  findMatch,
+  getBestMatchPreview,
+  getLocations,
+  apiUrl,
+} from "@/api/api";
 
 const progressBarWidth = ref(0);
 const resultMessage = ref("");
@@ -10,6 +15,7 @@ const bestMatch = ref(""); // ./images/szczytna/widokowa/widokowa2.png
 const bestMatchScore = ref(0);
 const allScores = ref<Record<string, number>>({});
 const bestMatchPreviewUrl = ref("");
+const availableLocations = ref([]);
 
 const onUploadProgress = (progressEvent: AxiosProgressEvent) => {
   progressBarWidth.value = Math.round(
@@ -58,6 +64,14 @@ function handleFileChange(event: Event) {
   const fileInput = event.target as HTMLInputElement;
   file.value = fileInput.files?.[0] || null;
 }
+
+onMounted(async () => {
+  try {
+    availableLocations.value = await getLocations();
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+  }
+});
 </script>
 
 <template>
@@ -78,8 +92,13 @@ function handleFileChange(event: Event) {
     <div class="folder-select">
       <select v-model="selectedFolder">
         <option disabled value="">Select Folder</option>
-        <option value="szczytna_widokowa">szczytna_widokowa</option>
-        <option value="stokowka">stokowka</option>
+        <option
+          v-for="location in availableLocations"
+          :key="location.name"
+          :value="location.name"
+        >
+          {{ location.label }}
+        </option>
       </select>
     </div>
 
