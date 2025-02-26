@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 #setting up device
@@ -145,6 +145,22 @@ class TwoImagesData(BaseModel):
 class CragData(BaseModel):
     name: str
     image: str
+
+class MatchPoint(BaseModel):
+    point1: Dict[str, float]
+    point2: Dict[str, float]
+
+class LocalHomographyData(BaseModel):
+    matches: List[MatchPoint]
+
+@app.post("/calculate_local_homography")
+async def calculate_local_homography(data: LocalHomographyData):
+    mkpts0 = np.array([[match.point1['x'], match.point1['y']] for match in data.matches])
+    mkpts1 = np.array([[match.point2['x'], match.point2['y']] for match in data.matches])
+    # TODO 5.0 confidence might be too high
+    H, inliers = cv2.findHomography(mkpts0, mkpts1, cv2.RANSAC, 5.0) 
+    homography_matrix = H.flatten().tolist()
+    return {"homography_matrix": homography_matrix}
 
 def get_available_locations():
     base_path = "./images"

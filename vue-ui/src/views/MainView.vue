@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, toRaw } from "vue";
 import {
   findMatchingMatrix,
   getLocations,
@@ -99,7 +99,13 @@ const collectCoordinates = async (event: MouseEvent) => {
   const matches = getMatchingsWithinRadius(point);
 
   const localHomography = await calculateLocalHomeography(matches);
-  localHomographies.value[`${point[0]}-${point[1]}`] = localHomography;
+  const { homography_matrix } = localHomography;
+  localHomographies.value[`${point[0]}-${point[1]}`] = cv.matFromArray(
+    3,
+    3,
+    cv.CV_32F,
+    homography_matrix
+  );
 };
 
 const h = computed(() => {
@@ -117,6 +123,7 @@ const hInverse = computed(() => {
 function getMatch(point, { inverse = false } = {}) {
   const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
   const match = new cv.Mat();
+  console.log("pointMat working:", pointMat, h.value);
   cv.perspectiveTransform(pointMat, match, inverse ? hInverse.value : h.value);
   pointMat.delete();
   return [match.data32F[0], match.data32F[1]];
@@ -201,6 +208,25 @@ const getMatchingsWithinRadius = (point) => {
     return distance < neighbouringPointsRadius.value;
   });
 };
+
+const localHomeographyLines = computed(() => {
+  return clickedPointsOnImageOne.value
+    .map((point) => {
+      const localHomography =
+        localHomographies.value[`${point[0]}-${point[1]}`];
+      if (!localHomography) return null;
+      const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
+      console.log("pointMat maybe", pointMat, toRaw(localHomography));
+      const match = new cv.Mat();
+      cv.perspectiveTransform(pointMat, match, toRaw(localHomography));
+      pointMat.delete();
+      return {
+        point1: point,
+        point2: [match.data32F[0], match.data32F[1]],
+      };
+    })
+    .filter((line) => line);
+});
 
 const correspondingOnImageTwo = computed(() => {
   const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
@@ -652,6 +678,17 @@ const hideCragTooltip = () => {
                     stroke-width="3"
                     @mouseover="line.hovered.value = true"
                     @mouseleave="line.hovered.value = false"
+                  />
+
+                  <line
+                    v-for="(line, index) in localHomeographyLines"
+                    :key="`line-${index}`"
+                    :x1="line.point1[0]"
+                    :y1="line.point1[1]"
+                    :x2="line.point2[0] + matchingMatrixResult.image1.width"
+                    :y2="line.point2[1]"
+                    stroke="red"
+                    stroke-width="3"
                   />
                 </template>
               </template>
