@@ -164,6 +164,28 @@ const clickedPointsOnImageOne = computed(() =>
     (point) => point[0] < matchingMatrixResult.value.image1.width
   )
 );
+const lastClickedPointOnImageOne = computed(
+  () => clickedPointsOnImageOne.value[clickedPointsOnImageOne.value.length - 1]
+);
+
+const neighbouringPointsRadius = computed(() => {
+  // TODO consider the radius size, maybe it can be smaller if there are lots of matching points within
+  return matchingMatrixResult.value.image1.width / 2 / 2;
+});
+
+const matchingPointsWithinRadius = computed(() => {
+  if (!lastClickedPointOnImageOne.value) return [];
+  return matchingMatrixResult.value.matched_points
+    .map((match) => match.point1)
+    .filter((point1) => {
+      const distance = Math.sqrt(
+        (point1.x - lastClickedPointOnImageOne.value[0]) ** 2 +
+          (point1.y - lastClickedPointOnImageOne.value[1]) ** 2
+      );
+      return distance < neighbouringPointsRadius.value;
+    });
+});
+
 const correspondingOnImageTwo = computed(() => {
   const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
   return matches;
@@ -328,10 +350,8 @@ const lines = computed(() => {
   return matchingMatrixResult.value.matched_points.map((match) => {
     const { point1, point2 } = match;
     return {
-      x1: point1.x,
-      y1: point1.y,
-      x2: point2.x,
-      y2: point2.y,
+      point1,
+      point2,
       show: ref(false),
       hovered: ref(false),
     };
@@ -517,6 +537,15 @@ const hideCragTooltip = () => {
                     stroke-width="2"
                   />
                 </template>
+                {{ neighbouringPointsRadius }}
+                <circle
+                  v-if="lastClickedPointOnImageOne"
+                  :cx="lastClickedPointOnImageOne[0]"
+                  :cy="lastClickedPointOnImageOne[1]"
+                  :r="neighbouringPointsRadius"
+                  fill="none"
+                  stroke="yellow"
+                />
                 <circle
                   v-for="clickedPoint in clickedPointsOnImageOne"
                   :key="clickedPoint"
@@ -559,8 +588,8 @@ const hideCragTooltip = () => {
                   >
                     <circle
                       v-if="!isMobile || showImage1"
-                      :cx="line.x1"
-                      :cy="line.y1"
+                      :cx="line.point1.x"
+                      :cy="line.point1.y"
                       :r="line.show.value ? 9 : 6"
                       :stroke="line.show.value ? 'green' : 'black'"
                       stroke-width="2"
@@ -569,16 +598,21 @@ const hideCragTooltip = () => {
                       @click="circleClicked(line)"
                       @mouseover="line.hovered.value = true"
                       @mouseleave="line.hovered.value = false"
-                      :class="{ shown: line.show.value }"
+                      :class="{
+                        shown: line.show.value,
+                        'withing-radius': matchingPointsWithinRadius.includes(
+                          line.point1
+                        ),
+                      }"
                     />
                     <circle
                       v-if="!isMobile || !showImage1"
                       :cx="
                         showImage1
-                          ? line.x2 + matchingMatrixResult.image1.width
-                          : line.x2
+                          ? line.point2.x + matchingMatrixResult.image1.width
+                          : line.point2.x
                       "
-                      :cy="line.y2"
+                      :cy="line.point2.y"
                       :r="line.show.value ? 9 : 6"
                       :stroke="line.show.value ? 'green' : 'black'"
                       stroke-width="2"
@@ -595,10 +629,10 @@ const hideCragTooltip = () => {
                   <line
                     v-for="(line, index) in shownLines"
                     :key="`line-${index}`"
-                    :x1="line.x1"
-                    :y1="line.y1"
-                    :x2="line.x2 + matchingMatrixResult.image1.width"
-                    :y2="line.y2"
+                    :x1="line.point1.x"
+                    :y1="line.point1.y"
+                    :x2="line.point2.x + matchingMatrixResult.image1.width"
+                    :y2="line.point2.y"
                     stroke="green"
                     stroke-width="3"
                     @mouseover="line.hovered.value = true"
@@ -619,6 +653,9 @@ const hideCragTooltip = () => {
           </ol>
         </div>
       </div>
+      <pre>
+        {{ lastClickedPointOnImageOne }}, {{ neighbouringPointsRadius }}
+      </pre>
       <button
         @click="showIdentifiedMatchingPoints = !showIdentifiedMatchingPoints"
         style="margin-top: 20px"
@@ -762,6 +799,10 @@ circle {
 
 circle.shown {
   opacity: 1;
+}
+
+circle.withing-radius {
+  fill: yellow !important;
 }
 
 .spinner {
