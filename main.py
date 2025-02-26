@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import kornia as K
 import kornia.feature as KF 
 from kornia_moons.viz import draw_LAF_matches
-from fastapi import FastAPI, Form, UploadFile, File
+from fastapi import FastAPI, Form, UploadFile, File, Query
 from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -178,7 +178,12 @@ async def get_locations():
     return {"locations": locations}
 
 @app.post("/find_matching_matrix")
-async def find_matching_matrix(data: ImageData):
+async def find_matching_matrix(data: ImageData, use_fixtures: int = Query(0)):
+  if use_fixtures == 1:
+      with open("fixtures/find_matching_matrix.json", "r") as f:
+          fixture_data = json.load(f)
+      return JSONResponse(content=fixture_data)
+
   img_bytes = base64.b64decode(data.image_data)
   tensor1 = get_tensor_image(img_bytes)
   img1 = tensor1['img']

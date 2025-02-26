@@ -37,7 +37,7 @@ export const findMatchingMatrix = async (
 ) => {
   try {
     const response = await api.post(
-      `/find_matching_matrix`,
+      `/find_matching_matrix?use_fixtures=1`,
       {
         folder_path: folder,
         image_data: imageData,
