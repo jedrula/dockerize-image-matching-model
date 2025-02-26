@@ -53,6 +53,15 @@ export const findMatchingMatrix = async (
   }
 };
 
+export const calculateLocalHomeography = async (
+  matches: Array<{ point1: number[]; point2: number[] }>
+) => {
+  const response = await api.post("/calculate_local_homography", {
+    matches,
+  });
+  return response.data;
+};
+
 export const getBestMatchPreview = async (
   file: File,
   bestMatch: string,

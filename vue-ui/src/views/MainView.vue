@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { findMatchingMatrix, getLocations, apiUrl } from "@/api/api";
+import {
+  findMatchingMatrix,
+  getLocations,
+  apiUrl,
+  calculateLocalHomeography,
+} from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
 
 const languages = {
@@ -76,7 +81,7 @@ const getCoordinates = async function (): Promise<{
   });
 };
 
-const collectCoordinates = (event: MouseEvent) => {
+const collectCoordinates = async (event: MouseEvent) => {
   // this function will alert coordinates of the clicked point relateive to the left top corner of the svg
   const svg = document.querySelector("svg");
   if (!svg) {
@@ -88,7 +93,13 @@ const collectCoordinates = (event: MouseEvent) => {
   pt.y = event.clientY;
   const cursorpt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
   console.log("Coordinates2: ", cursorpt.x, cursorpt.y);
-  clickedPoints.value.push([cursorpt.x, cursorpt.y]);
+  const point = [cursorpt.x, cursorpt.y];
+  clickedPoints.value.push(point);
+
+  const matches = getMatchingsWithinRadius(point);
+
+  const localHomography = await calculateLocalHomeography(matches);
+  localHomographies.value[`${point[0]}-${point[1]}`] = localHomography;
 };
 
 const h = computed(() => {
@@ -159,11 +170,13 @@ const distancesFromLocations = computed(() =>
 const coordinates = ref({ latitude: 0, longitude: 0 });
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
 const clickedPoints = ref([]);
+const localHomographies = ref({});
 const clickedPointsOnImageOne = computed(() =>
   clickedPoints.value.filter(
     (point) => point[0] < matchingMatrixResult.value.image1.width
   )
 );
+
 const lastClickedPointOnImageOne = computed(
   () => clickedPointsOnImageOne.value[clickedPointsOnImageOne.value.length - 1]
 );
@@ -173,18 +186,21 @@ const neighbouringPointsRadius = computed(() => {
   return matchingMatrixResult.value.image1.width / 2 / 2;
 });
 
-const matchingPointsWithinRadius = computed(() => {
+const matchingPointsOneWithinRadius = computed(() => {
   if (!lastClickedPointOnImageOne.value) return [];
-  return matchingMatrixResult.value.matched_points
-    .map((match) => match.point1)
-    .filter((point1) => {
-      const distance = Math.sqrt(
-        (point1.x - lastClickedPointOnImageOne.value[0]) ** 2 +
-          (point1.y - lastClickedPointOnImageOne.value[1]) ** 2
-      );
-      return distance < neighbouringPointsRadius.value;
-    });
+  return getMatchingsWithinRadius(lastClickedPointOnImageOne.value).map(
+    (match) => match.point1
+  );
 });
+
+const getMatchingsWithinRadius = (point) => {
+  return matchingMatrixResult.value.matched_points.filter((match) => {
+    const distance = Math.sqrt(
+      (match.point1.x - point[0]) ** 2 + (match.point1.y - point[1]) ** 2
+    );
+    return distance < neighbouringPointsRadius.value;
+  });
+};
 
 const correspondingOnImageTwo = computed(() => {
   const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
@@ -600,9 +616,8 @@ const hideCragTooltip = () => {
                       @mouseleave="line.hovered.value = false"
                       :class="{
                         shown: line.show.value,
-                        'withing-radius': matchingPointsWithinRadius.includes(
-                          line.point1
-                        ),
+                        'withing-radius':
+                          matchingPointsOneWithinRadius.includes(line.point1),
                       }"
                     />
                     <circle
@@ -675,7 +690,10 @@ const hideCragTooltip = () => {
       </button>
       <!-- Clear Custom -->
       <button
-        @click="clickedPoints = []"
+        @click="
+          clickedPoints = [];
+          localHomographies = {};
+        "
         :disabled="!clickedPoints.length"
         style="margin-top: 20px; margin-left: 10px"
       >
