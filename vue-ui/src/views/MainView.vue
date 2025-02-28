@@ -681,6 +681,17 @@ const hideCragTooltip = () => {
                   r="5"
                   fill="pink"
                 />
+                <!-- crags -->
+                <template v-for="crag in crags">
+                  <circle
+                    v-for="(point, index) in crag.path"
+                    :key="index"
+                    :cx="matchingMatrixResult.image1.width + point[0]"
+                    :cy="point[1]"
+                    r="5"
+                    fill="green"
+                  />
+                </template>
                 <template v-if="showIdentifiedMatchingPoints">
                   <template
                     v-for="(line, index) in lines"
