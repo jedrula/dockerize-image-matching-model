@@ -4,10 +4,10 @@ import {
   findMatchingMatrix,
   getLocations,
   apiUrl,
-  calculateLocalHomeography,
+  // calculateLocalHomeography,
 } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
-import findMatchingMatrixFixtures from "@/find_matching_matrix.json";
+// import findMatchingMatrixFixtures from "@/find_matching_matrix.json";
 
 // "homography_matrix": [
 //     1.7397511547036888,
@@ -106,7 +106,6 @@ const getCoordinates = async function (): Promise<{
 };
 
 const collectCoordinates = async (event: MouseEvent) => {
-  // this function will alert coordinates of the clicked point relateive to the left top corner of the svg
   const svg = document.querySelector("svg");
   if (!svg) {
     console.error("SVG element not found.");
@@ -122,14 +121,8 @@ const collectCoordinates = async (event: MouseEvent) => {
 
   const matches = getMatchingsWithinRadius(point);
 
-  const localHomography = await calculateLocalHomeography(matches);
-  const { homography_matrix } = localHomography;
-  localHomographies.value[`${point[0]}-${point[1]}`] = cv.matFromArray(
-    3,
-    3,
-    cv.CV_32F,
-    homography_matrix
-  );
+  const localHomography = calculateLocalHomography(matches);
+  localHomographies.value[`${point[0]}-${point[1]}`] = localHomography;
 };
 
 const h = computed(() => {
@@ -197,6 +190,39 @@ const distancesFromLocations = computed(() =>
     })
     .sort((a, b) => a.distance - b.distance)
 );
+
+const calculateLocalHomography = (matches) => {
+  const mkpts0 = matches.map((match) => [match.point1.x, match.point1.y]);
+  const mkpts1 = matches.map((match) => [match.point2.x, match.point2.y]);
+
+  const srcPoints = cv.matFromArray(
+    mkpts0.length,
+    1,
+    cv.CV_32FC2,
+    mkpts0.flat()
+  );
+  const dstPoints = cv.matFromArray(
+    mkpts1.length,
+    1,
+    cv.CV_32FC2,
+    mkpts1.flat()
+  );
+
+  const mask = new cv.Mat();
+  const homography = cv.findHomography(
+    srcPoints,
+    dstPoints,
+    cv.RANSAC,
+    5.0,
+    mask
+  );
+
+  srcPoints.delete();
+  dstPoints.delete();
+  mask.delete();
+
+  return homography;
+};
 
 const coordinates = ref({ latitude: 0, longitude: 0 });
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
