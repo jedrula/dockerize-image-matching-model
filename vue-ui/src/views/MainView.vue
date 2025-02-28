@@ -190,7 +190,7 @@ const distancesFromLocations = computed(() =>
     .sort((a, b) => a.distance - b.distance)
 );
 
-const calculateLocalHomography = (matches) => {
+const calculateLocalHomography = (matches, inverse = false) => {
   const mkpts0 = matches.map((match) => [match.point1.x, match.point1.y]);
   const mkpts1 = matches.map((match) => [match.point2.x, match.point2.y]);
 
@@ -208,22 +208,14 @@ const calculateLocalHomography = (matches) => {
   );
 
   const mask = new cv.Mat();
-  const homography = cv.findHomography(
-    srcPoints,
-    dstPoints,
-    cv.RANSAC,
-    5.0,
-    mask
-  );
-
-  const homographyInverse = new cv.Mat();
-  cv.invert(homography, homographyInverse, cv.DECOMP_SVD);
+  const points = inverse ? [dstPoints, srcPoints] : [srcPoints, dstPoints];
+  const homography = cv.findHomography(...points, cv.RANSAC, 5.0, mask);
 
   srcPoints.delete();
   dstPoints.delete();
   mask.delete();
 
-  return { homography, homographyInverse };
+  return homography;
 };
 
 const neighbouringPointsRadius = computed(() => {
@@ -284,7 +276,7 @@ const getMatchingsWithinRadius = (point, searchPoint2 = false) => {
 
 const correspondingOnImageTwoLocal = computed(() => {
   return clickedPointsOnImageOne.value.map((point) => {
-    const { homography } = calculateLocalHomography(
+    const homography = calculateLocalHomography(
       getMatchingsWithinRadius(point)
     );
     const transformedPoint = transformPoint(point, homography);
@@ -307,7 +299,7 @@ const correspondingOnImageOne = computed(() => {
 const correspondingOnImageOneLocal = computed(() => {
   return clickedPointsOnImageTwoAbsolute.value.map((point) => {
     const matches = getMatchingsWithinRadius(point, true);
-    const { homographyInverse } = calculateLocalHomography(matches);
+    const homographyInverse = calculateLocalHomography(matches, true);
     const transformedPoint = transformPoint(point, homographyInverse);
     return transformedPoint;
   });
