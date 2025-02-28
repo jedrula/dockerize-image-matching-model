@@ -137,13 +137,17 @@ const hInverse = computed(() => {
   return cv.matFromArray(3, 3, cv.CV_32F, homography_matrix_inverse);
 });
 
-function getMatch(point, { inverse = false } = {}) {
+function transformPoint(point, homography) {
   const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
   const match = new cv.Mat();
-  console.log("pointMat working:", pointMat, h.value);
-  cv.perspectiveTransform(pointMat, match, inverse ? hInverse.value : h.value);
+  cv.perspectiveTransform(pointMat, match, homography);
   pointMat.delete();
   return [match.data32F[0], match.data32F[1]];
+}
+
+function getMatch(point, { inverse = false } = {}) {
+  const homography = inverse ? hInverse.value : h.value;
+  return transformPoint(point, homography);
 }
 
 // Function to calculate the distance using Haversine formula
@@ -224,6 +228,11 @@ const calculateLocalHomography = (matches) => {
   return homography;
 };
 
+const neighbouringPointsRadius = computed(() => {
+  // TODO consider the radius size, maybe it can be smaller if there are lots of matching points within
+  return matchingMatrixResult.value.image1.width / 2 / 2;
+});
+
 const coordinates = ref({ latitude: 0, longitude: 0 });
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
 const clickedPoints = ref([]);
@@ -234,14 +243,18 @@ const clickedPointsOnImageOne = computed(() =>
   )
 );
 
-const lastClickedPointOnImageOne = computed(
-  () => clickedPointsOnImageOne.value[clickedPointsOnImageOne.value.length - 1]
+const clickedPointsOnImageTwo = computed(() =>
+  clickedPoints.value.filter(
+    (point) => point[0] >= matchingMatrixResult.value.image1.width
+  )
 );
 
-const neighbouringPointsRadius = computed(() => {
-  // TODO consider the radius size, maybe it can be smaller if there are lots of matching points within
-  return matchingMatrixResult.value.image1.width / 2 / 2;
-});
+const clickedPointsOnImageTwoAbsolute = computed(() =>
+  clickedPointsOnImageTwo.value.map((point) => [
+    point[0] - matchingMatrixResult.value.image1.width,
+    point[1],
+  ])
+);
 
 const matchingPointsOneWithinRadius = computed(() => {
   if (!lastClickedPointOnImageOne.value) return [];
@@ -278,14 +291,10 @@ const localHomeographyLines = computed(() => {
       const localHomography =
         localHomographies.value[`${point[0]}-${point[1]}`];
       if (!localHomography) return null;
-      const pointMat = cv.matFromArray(1, 1, cv.CV_32FC2, point);
-      console.log("pointMat maybe", pointMat, toRaw(localHomography));
-      const match = new cv.Mat();
-      cv.perspectiveTransform(pointMat, match, toRaw(localHomography));
-      pointMat.delete();
+      const transformedPoint = transformPoint(point, toRaw(localHomography));
       return {
         point1: point,
-        point2: [match.data32F[0], match.data32F[1]],
+        point2: transformedPoint,
       };
     })
     .filter((line) => line);
@@ -295,18 +304,6 @@ const correspondingOnImageTwo = computed(() => {
   const matches = clickedPointsOnImageOne.value.map((point) => getMatch(point));
   return matches;
 });
-const clickedPointsOnImageTwo = computed(() =>
-  clickedPoints.value.filter(
-    (point) => point[0] >= matchingMatrixResult.value.image1.width
-  )
-);
-
-const clickedPointsOnImageTwoAbsolute = computed(() =>
-  clickedPointsOnImageTwo.value.map((point) => [
-    point[0] - matchingMatrixResult.value.image1.width,
-    point[1],
-  ])
-);
 
 const correspondingOnImageOne = computed(() => {
   const matches = clickedPointsOnImageTwoAbsolute.value.map((point) =>
@@ -314,6 +311,10 @@ const correspondingOnImageOne = computed(() => {
   );
   return matches;
 });
+
+const lastClickedPointOnImageOne = computed(
+  () => clickedPointsOnImageOne.value[clickedPointsOnImageOne.value.length - 1]
+);
 
 const availableLocations = ref([]);
 
