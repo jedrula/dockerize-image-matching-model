@@ -7,6 +7,30 @@ import {
   calculateLocalHomeography,
 } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
+import findMatchingMatrixFixtures from "@/find_matching_matrix.json";
+
+// "homography_matrix": [
+//     1.7397511547036888,
+//     -0.31165699370122224,
+//     -143.0812122213628,
+//     0.4421421398017069,
+//     1.236877454829803,
+//     -235.11913078305182,
+//     0.0004901853457992901,
+//     -0.0003096948412705201,
+//     1.0
+//   ],
+//   "homography_matrix_inverse": [
+//     0.5049643677410239,
+//     0.15441735056246716,
+//     108.55738710704878,
+//     -0.2417947578125535,
+//     0.7851200939180328,
+//     150.0004669857249,
+//     -0.00032240872235825627,
+//     0.00016745452048136784,
+//     0.9932411304755118
+//   ]
 
 const languages = {
   en: {
@@ -200,13 +224,26 @@ const matchingPointsOneWithinRadius = computed(() => {
   );
 });
 
-const getMatchingsWithinRadius = (point) => {
+const getMatchingsWithin = (point, maxRadius) => {
   return matchingMatrixResult.value.matched_points.filter((match) => {
     const distance = Math.sqrt(
       (match.point1.x - point[0]) ** 2 + (match.point1.y - point[1]) ** 2
     );
-    return distance < neighbouringPointsRadius.value;
+    return distance < maxRadius;
   });
+};
+
+const getMatchingsWithinRadius = (point) => {
+  // neighbouringPointsRadius should be the max, but we should consider smaller radiuses first. Let's do 5 iterations growing the radius, and if there are at least 5 matching points, we can stop
+  let maximumRadius =
+    neighbouringPointsRadius.value / 1.5 / 1.5 / 1.5 / 1.5 / 1.5;
+  let matches = [];
+  for (let i = 0; i < 6; i++) {
+    matches = getMatchingsWithin(point, maximumRadius);
+    if (matches.length >= 10) break;
+    maximumRadius = maximumRadius * 1.5;
+  }
+  return matches;
 };
 
 const localHomeographyLines = computed(() => {
