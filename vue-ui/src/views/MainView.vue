@@ -118,11 +118,6 @@ const collectCoordinates = async (event: MouseEvent) => {
   console.log("Coordinates2: ", cursorpt.x, cursorpt.y);
   const point = [cursorpt.x, cursorpt.y];
   clickedPoints.value.push(point);
-
-  const matches = getMatchingsWithinRadius(point);
-
-  const localHomography = calculateLocalHomography(matches);
-  localHomographies.value[`${point[0]}-${point[1]}`] = localHomography;
 };
 
 const h = computed(() => {
@@ -285,19 +280,14 @@ const getMatchingsWithinRadius = (point) => {
   return matches;
 };
 
-const localHomeographyLines = computed(() => {
-  return clickedPointsOnImageOne.value
-    .map((point) => {
-      const localHomography =
-        localHomographies.value[`${point[0]}-${point[1]}`];
-      if (!localHomography) return null;
-      const transformedPoint = transformPoint(point, toRaw(localHomography));
-      return {
-        point1: point,
-        point2: transformedPoint,
-      };
-    })
-    .filter((line) => line);
+const correspondingOnImageTwoLocal = computed(() => {
+  return clickedPointsOnImageOne.value.map((point) => {
+    const localHomography = calculateLocalHomography(
+      getMatchingsWithinRadius(point)
+    );
+    const transformedPoint = transformPoint(point, localHomography);
+    return transformedPoint;
+  });
 });
 
 const correspondingOnImageTwo = computed(() => {
@@ -745,12 +735,15 @@ const hideCragTooltip = () => {
                   />
 
                   <line
-                    v-for="(line, index) in localHomeographyLines"
+                    v-for="(point1, index) in clickedPointsOnImageOne"
                     :key="`line-${index}`"
-                    :x1="line.point1[0]"
-                    :y1="line.point1[1]"
-                    :x2="line.point2[0] + matchingMatrixResult.image1.width"
-                    :y2="line.point2[1]"
+                    :x1="point1[0]"
+                    :y1="point1[1]"
+                    :x2="
+                      matchingMatrixResult.image1.width +
+                      correspondingOnImageTwoLocal[index][0]
+                    "
+                    :y2="correspondingOnImageTwoLocal[index][1]"
                     stroke="red"
                     stroke-width="3"
                   />
