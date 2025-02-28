@@ -274,13 +274,16 @@ const getMatchingsWithinRadius = (point, searchPoint2 = false) => {
   return matches;
 };
 
+const calculateMatchingPoint = (point, inverse = false) => {
+  const matches = getMatchingsWithinRadius(point, inverse);
+  const homography = calculateLocalHomography(matches, inverse);
+  const transformedPoint = transformPoint(point, homography);
+  return transformedPoint;
+};
+
 const correspondingOnImageTwoLocal = computed(() => {
   return clickedPointsOnImageOne.value.map((point) => {
-    const homography = calculateLocalHomography(
-      getMatchingsWithinRadius(point)
-    );
-    const transformedPoint = transformPoint(point, homography);
-    return transformedPoint;
+    return calculateMatchingPoint(point);
   });
 });
 
@@ -298,10 +301,7 @@ const correspondingOnImageOne = computed(() => {
 
 const correspondingOnImageOneLocal = computed(() => {
   return clickedPointsOnImageTwoAbsolute.value.map((point) => {
-    const matches = getMatchingsWithinRadius(point, true);
-    const homographyInverse = calculateLocalHomography(matches, true);
-    const transformedPoint = transformPoint(point, homographyInverse);
-    return transformedPoint;
+    return calculateMatchingPoint(point, true);
   });
 });
 
@@ -490,7 +490,8 @@ const cragsPathsOnImageOne = computed(() => {
   return crags.value.map((crag) => {
     const points = crag.path ?? [];
     return points.map((point) => {
-      return getMatch(point, { inverse: true });
+      // return getMatch(point, { inverse: true });
+      return calculateMatchingPoint(point, true);
     });
   });
 });
@@ -756,8 +757,8 @@ const hideCragTooltip = () => {
                     :key="`line-${index}`"
                     :x1="point2[0]"
                     :y1="point2[1]"
-                    :x2="correspondingOnImageOne[index][0]"
-                    :y2="correspondingOnImageOne[index][1]"
+                    :x2="correspondingOnImageOneLocal[index][0]"
+                    :y2="correspondingOnImageOneLocal[index][1]"
                     stroke="blue"
                     stroke-width="3"
                   />
