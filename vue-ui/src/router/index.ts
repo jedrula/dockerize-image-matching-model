@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import MainView from "../views/MainView.vue";
 import AddView from "../views/AddView.vue";
 import RegionView from "../views/RegionView.vue";
+import RegionsListView from "../views/RegionsListView.vue";
 import CragView from "../views/CragView.vue";
 
 const router = createRouter({
@@ -24,14 +25,18 @@ const router = createRouter({
       component: MainView,
     },
     {
-      // TODO - just a placeholder, will allow adding new topos in the future
       path: "/add-region",
       name: "add-region",
       component: AddView,
     },
     {
+      path: "/regions",
+      name: "regions",
+      component: RegionsListView,
+    },
+    {
       // lists all crags in a region
-      path: "/region/:region",
+      path: "/regions/:region",
       name: "region",
       component: RegionView,
     },
