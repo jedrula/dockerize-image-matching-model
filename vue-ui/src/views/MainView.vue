@@ -216,11 +216,14 @@ const calculateLocalHomography = (matches) => {
     mask
   );
 
+  const homographyInverse = new cv.Mat();
+  cv.invert(homography, homographyInverse, cv.DECOMP_SVD);
+
   srcPoints.delete();
   dstPoints.delete();
   mask.delete();
 
-  return homography;
+  return { homography, homographyInverse };
 };
 
 const neighbouringPointsRadius = computed(() => {
@@ -231,7 +234,6 @@ const neighbouringPointsRadius = computed(() => {
 const coordinates = ref({ latitude: 0, longitude: 0 });
 const hasCoordinates = computed(() => coordinates.value.latitude !== 0);
 const clickedPoints = ref([]);
-const localHomographies = ref({});
 const clickedPointsOnImageOne = computed(() =>
   clickedPoints.value.filter(
     (point) => point[0] < matchingMatrixResult.value.image1.width
@@ -258,22 +260,22 @@ const matchingPointsOneWithinRadius = computed(() => {
   );
 });
 
-const getMatchingsWithin = (point, maxRadius) => {
+const getMatchingsWithin = (point, maxRadius, searchPoint2 = false) => {
   return matchingMatrixResult.value.matched_points.filter((match) => {
+    const targetPoint = searchPoint2 ? match.point2 : match.point1;
     const distance = Math.sqrt(
-      (match.point1.x - point[0]) ** 2 + (match.point1.y - point[1]) ** 2
+      (targetPoint.x - point[0]) ** 2 + (targetPoint.y - point[1]) ** 2
     );
     return distance < maxRadius;
   });
 };
 
-const getMatchingsWithinRadius = (point) => {
-  // neighbouringPointsRadius should be the max, but we should consider smaller radiuses first. Let's do 5 iterations growing the radius, and if there are at least 5 matching points, we can stop
+const getMatchingsWithinRadius = (point, searchPoint2 = false) => {
   let maximumRadius =
     neighbouringPointsRadius.value / 1.5 / 1.5 / 1.5 / 1.5 / 1.5;
   let matches = [];
   for (let i = 0; i < 6; i++) {
-    matches = getMatchingsWithin(point, maximumRadius);
+    matches = getMatchingsWithin(point, maximumRadius, searchPoint2);
     if (matches.length >= 10) break;
     maximumRadius = maximumRadius * 1.5;
   }
@@ -282,10 +284,10 @@ const getMatchingsWithinRadius = (point) => {
 
 const correspondingOnImageTwoLocal = computed(() => {
   return clickedPointsOnImageOne.value.map((point) => {
-    const localHomography = calculateLocalHomography(
+    const { homography } = calculateLocalHomography(
       getMatchingsWithinRadius(point)
     );
-    const transformedPoint = transformPoint(point, localHomography);
+    const transformedPoint = transformPoint(point, homography);
     return transformedPoint;
   });
 });
@@ -300,6 +302,15 @@ const correspondingOnImageOne = computed(() => {
     getMatch(point, { inverse: true })
   );
   return matches;
+});
+
+const correspondingOnImageOneLocal = computed(() => {
+  return clickedPointsOnImageTwoAbsolute.value.map((point) => {
+    const matches = getMatchingsWithinRadius(point, true);
+    const { homographyInverse } = calculateLocalHomography(matches);
+    const transformedPoint = transformPoint(point, homographyInverse);
+    return transformedPoint;
+  });
 });
 
 const lastClickedPointOnImageOne = computed(
@@ -747,6 +758,17 @@ const hideCragTooltip = () => {
                     stroke="red"
                     stroke-width="3"
                   />
+
+                  <line
+                    v-for="(point2, index) in clickedPointsOnImageTwo"
+                    :key="`line-${index}`"
+                    :x1="point2[0]"
+                    :y1="point2[1]"
+                    :x2="correspondingOnImageOne[index][0]"
+                    :y2="correspondingOnImageOne[index][1]"
+                    stroke="blue"
+                    stroke-width="3"
+                  />
                 </template>
               </template>
             </svg>
@@ -784,10 +806,7 @@ const hideCragTooltip = () => {
       </button>
       <!-- Clear Custom -->
       <button
-        @click="
-          clickedPoints = [];
-          localHomographies = {};
-        "
+        @click="clickedPoints = []"
         :disabled="!clickedPoints.length"
         style="margin-top: 20px; margin-left: 10px"
       >
