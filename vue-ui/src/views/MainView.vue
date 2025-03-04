@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, toRaw } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   findMatchingMatrix,
   getLocations,
@@ -7,6 +7,7 @@ import {
   // calculateLocalHomeography,
 } from "@/api/api";
 import Tooltip from "@/components/Tooltip.vue";
+import NavHeader from "@/components/NavHeader.vue";
 // import findMatchingMatrixFixtures from "@/find_matching_matrix.json";
 
 // "homography_matrix": [
@@ -516,6 +517,7 @@ const hideCragTooltip = () => {
 </script>
 
 <template>
+  <NavHeader />
   <div class="matching-matrix">
     <div style="position: fixed; top: 0; right: 0; padding: 10px">
       <small
