@@ -281,6 +281,8 @@ const calculateMatchingPoint = (point, inverse = false) => {
   return transformedPoint;
 };
 
+window.calculateMatchingPoint = calculateMatchingPoint;
+
 const correspondingOnImageTwoLocal = computed(() => {
   return clickedPointsOnImageOne.value.map((point) => {
     return calculateMatchingPoint(point);
@@ -788,9 +790,12 @@ const hideCragTooltip = () => {
           </ol>
         </div>
       </div>
-      <pre>
-        {{ lastClickedPointOnImageOne }}, {{ neighbouringPointsRadius }}
-      </pre>
+      <!-- <pre>
+        {{ crags }}
+        {{ clickedPointsOnImageTwoAbsolute }}
+        ----
+        {{ correspondingOnImageOneLocal }}
+      </pre> -->
       <button
         @click="showIdentifiedMatchingPoints = !showIdentifiedMatchingPoints"
         style="margin-top: 20px"
